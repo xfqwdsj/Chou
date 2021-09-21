@@ -53,11 +53,11 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val controller = rememberSystemUiController()
+            val isLight = MaterialTheme.colors.isLight
             SideEffect {
                 controller.setSystemBarsColor(
                     color = androidx.compose.ui.graphics.Color.Transparent,
-                    darkIcons = MaterialTheme.colors.isLight &&
-                            ((viewModel.sheetProgress.to == BottomSheetValue.Expanded
+                    darkIcons = isLight && ((viewModel.sheetProgress.to == BottomSheetValue.Expanded
                                     && viewModel.sheetProgress.fraction >= 0.9)
                                     || (viewModel.sheetProgress.to == BottomSheetValue.Collapsed
                                     && viewModel.sheetProgress.fraction <= 0.1))

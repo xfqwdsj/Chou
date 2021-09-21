@@ -26,8 +26,9 @@ jobs:
       - name: 配置签名
         run: |
           echo ${{ secrets.KEY }} >> key.properties
-      - name: 编译
-        run: ./gradlew :app:assembleRelease
+          cat key.properties
+      # - name: 编译
+      #   run: ./gradlew :app:assembleRelease
       - name: 上传
         uses: actions/upload-artifact@v2.2.0
         with:

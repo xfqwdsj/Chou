@@ -25,6 +25,7 @@ jobs:
         run: chmod +x gradlew
       - name: 配置签名
         run: |
+          mkdir app/key
           echo ${{ secrets.KEY }} | base64 --decode >> app/key/key.jks
           echo ${{ secrets.STORE_PASSWORD }} >> key.properties
           echo ${{ secrets.ALIAS }} >> key.properties

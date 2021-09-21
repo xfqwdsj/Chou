@@ -24,11 +24,9 @@ jobs:
       - name: 给予执行权限
         run: chmod +x gradlew
       - name: 配置签名
-        run: |
-          echo ${{ secrets.KEY }} >> key.properties
-          cat key.properties
-      # - name: 编译
-      #   run: ./gradlew :app:assembleRelease
+        run: echo ${{ secrets.KEY }} >> key.properties
+      - name: 编译
+        run: ./gradlew :app:assembleRelease
       - name: 上传
         uses: actions/upload-artifact@v2.2.0
         with:

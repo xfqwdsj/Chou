@@ -52,20 +52,21 @@ class MainActivity : ComponentActivity() {
         setContent {
             val controller = rememberSystemUiController()
             val isLight = MaterialTheme.colors.isLight
-            SideEffect {
-                controller.setSystemBarsColor(
-                    color = androidx.compose.ui.graphics.Color.Transparent,
-                    darkIcons = isLight && ((viewModel.sheetProgress.to == BottomSheetValue.Expanded
-                                    && viewModel.sheetProgress.fraction >= 0.9)
-                                    || (viewModel.sheetProgress.to == BottomSheetValue.Collapsed
-                                    && viewModel.sheetProgress.fraction <= 0.1))
-                )
-            }
 
             ProvideWindowInsets {
                 ChouTheme {
                     BottomSheetScaffold(
                         sheetContent = {
+                            SideEffect {
+                                controller.setStatusBarColor(
+                                    color = androidx.compose.ui.graphics.Color.Transparent,
+                                    darkIcons = isLight && ((viewModel.sheetProgress.to == BottomSheetValue.Expanded
+                                            && viewModel.sheetProgress.fraction >= 0.9)
+                                            || (viewModel.sheetProgress.to == BottomSheetValue.Collapsed
+                                            && viewModel.sheetProgress.fraction <= 0.1))
+                                )
+                            }
+
                             val elevationOverlay = LocalElevationOverlay.current
                             val draggableBarAlpha by animateFloatAsState(
                                 targetValue = if (viewModel.dragging) 0.15f else 0.05f,

@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.animation.*
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
@@ -85,13 +86,16 @@ class MainActivity : ComponentActivity() {
                                     }
                                 )
                             )
-                            Box(
+                            BoxWithConstraints(
                                 modifier = Modifier.fillMaxWidth(),
                                 contentAlignment = Alignment.Center
                             ) {
+                                val width by animateDpAsState(
+                                    targetValue = (constraints.maxWidth * if (viewModel.dragging) 0.2f else 0.1f).dp
+                                )
                                 Spacer(
                                     modifier = Modifier
-                                        .padding(15.dp).width(60.dp).height(5.dp).clip(CircleShape)
+                                        .padding(15.dp).width(width).height(5.dp).clip(CircleShape)
                                         .background(color = MaterialTheme.colors.onSurface.copy(alpha = draggableBarAlpha))
                                 )
                             }
@@ -99,21 +103,26 @@ class MainActivity : ComponentActivity() {
                             with(LocalDensity.current) {
                                 var dragging by remember { mutableStateOf(false) }
                                 val alpha by animateFloatAsState(targetValue = if (dragging) 0.15f else 0.1f)
+                                val enabled = !viewModel.visible
+                                        || (viewModel.sheetProgress.to == BottomSheetValue.Expanded
+                                        && viewModel.sheetProgress.fraction < 1f)
+                                        || (viewModel.sheetProgress.to == BottomSheetValue.Collapsed
+                                        && viewModel.sheetProgress.fraction > 0f)
                                 Box(
                                     modifier = Modifier.padding(horizontal = 10.dp).fillMaxWidth()
                                         .clip(RoundedCornerShape(10.dp))
                                         .background(color = MaterialTheme.colors.onSurface.copy(alpha = alpha))
                                         .draggable(
                                             state = rememberDraggableState {
-                                                if (!viewModel.visible) viewModel.offset += it.toDp().value
+                                                if (enabled) viewModel.offset += it.toDp().value
                                             }, orientation = Orientation.Horizontal,
-                                            onDragStarted = { if (!viewModel.visible) dragging = true },
+                                            onDragStarted = { if (enabled) dragging = true },
                                             onDragStopped = { dragging = false }
                                         ).padding(10.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     AnimatedContent(
-                                        targetState = !viewModel.visible,
+                                        targetState = enabled,
                                         transitionSpec = { fadeIn() with fadeOut() }
                                     ) {
                                         CompositionLocalProvider(LocalContentAlpha provides if (it) ContentAlpha.medium else ContentAlpha.disabled) {
@@ -272,7 +281,7 @@ class MainActivity : ComponentActivity() {
                         },
                         sheetShape = RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp),
                         sheetPeekHeight = with(LocalDensity.current) {
-                            LocalWindowInsets.current.navigationBars.bottom.toDp() + 70.dp
+                            LocalWindowInsets.current.navigationBars.bottom.toDp() + 100.dp
                         }
                     ) {
 

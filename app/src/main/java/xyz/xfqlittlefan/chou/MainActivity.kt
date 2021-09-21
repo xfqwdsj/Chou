@@ -56,18 +56,6 @@ class MainActivity : ComponentActivity() {
                     BottomSheetScaffold(
                         sheetContent = {
                             val elevationOverlay = LocalElevationOverlay.current
-                            val topSpacerColor by animateColorAsState(
-                                targetValue = if ((viewModel.sheetProgress.to == BottomSheetValue.Expanded
-                                            && viewModel.sheetProgress.fraction == 1f)
-                                    || (viewModel.sheetProgress.to == BottomSheetValue.Collapsed
-                                            && viewModel.sheetProgress.fraction == 0f)
-                                ) {
-                                    MaterialTheme.colors.onBackground.copy(alpha = 0.3f)
-                                } else {
-                                    elevationOverlay?.apply(MaterialTheme.colors.surface, LocalAbsoluteElevation.current + BottomSheetScaffoldDefaults.SheetElevation) ?: MaterialTheme.colors.surface
-                                },
-                                animationSpec = tween(durationMillis = 700)
-                            )
                             val draggableBarAlpha by animateFloatAsState(
                                 targetValue = if (viewModel.dragging) 0.15f else 0.05f,
                                 animationSpec = tween(durationMillis = 500)
@@ -81,55 +69,42 @@ class MainActivity : ComponentActivity() {
                                             else -> 0f
                                         }.toDp()
                                     }
-                                ).background(color = topSpacerColor))
+                                )
+                            )
                             Box(
                                 modifier = Modifier.fillMaxWidth(),
-                                contentAlignment = Alignment.TopCenter
+                                contentAlignment = Alignment.Center
                             ) {
-                                    Spacer(
-                                        modifier = Modifier
-                                            .padding(15.dp).width(60.dp).height(5.dp).clip(CircleShape)
-                                            .background(color = MaterialTheme.colors.onSurface.copy(alpha = draggableBarAlpha))
-                                    )
                                 Spacer(
                                     modifier = Modifier
-                                        .fillMaxWidth().height(5.dp)
-                                        .background(
-                                            brush = Brush.verticalGradient(
-                                                colors = listOf(
-                                                    topSpacerColor,
-                                                    androidx.compose.ui.graphics.Color.Transparent
-                                                )
-                                            )
-                                        )
+                                        .padding(15.dp).width(60.dp).height(5.dp).clip(CircleShape)
+                                        .background(color = MaterialTheme.colors.onSurface.copy(alpha = draggableBarAlpha))
                                 )
                             }
                             Spacer(modifier = Modifier.height(10.dp))
                             with(LocalDensity.current) {
-                                Box(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp))) {
-                                    var dragging by remember { mutableStateOf(false) }
-                                    val alpha by animateFloatAsState(targetValue = if (dragging) 0.15f else 0.1f)
+                                var dragging by remember { mutableStateOf(false) }
+                                val alpha by animateFloatAsState(targetValue = if (dragging) 0.15f else 0.1f)
+                                Box(
+                                    modifier = Modifier.padding(horizontal = 10.dp).fillMaxWidth()
+                                        .clip(RoundedCornerShape(10.dp))
+                                        .background(color = MaterialTheme.colors.onSurface.copy(alpha = alpha))
+                                        .draggable(
+                                            state = rememberDraggableState {
+                                                if (!viewModel.visible) viewModel.offset += it.toDp().value
+                                            }, orientation = Orientation.Horizontal,
+                                            onDragStarted = { if (!viewModel.visible) dragging = true },
+                                            onDragStopped = { dragging = false }
+                                        ).padding(10.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
                                     androidx.compose.animation.AnimatedVisibility(
                                         visible = !viewModel.visible,
-                                        enter = fadeIn() + expandVertically(),
-                                        exit = fadeOut() + shrinkVertically()
+                                        enter = fadeIn(),
+                                        exit = fadeOut()
                                     ) {
-                                        Box(
-                                            modifier = Modifier.padding(horizontal = 10.dp).fillMaxWidth()
-                                                //.clip(RoundedCornerShape(10.dp))
-                                                .background(color = MaterialTheme.colors.onSurface.copy(alpha = alpha))
-                                                .draggable(
-                                                    state = rememberDraggableState {
-                                                        if (!viewModel.visible) viewModel.offset += it.toDp().value
-                                                    }, orientation = Orientation.Horizontal,
-                                                    onDragStarted = { dragging = true },
-                                                    onDragStopped = { dragging = false }
-                                                ).padding(10.dp),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.medium) {
-                                                Text(text = stringResource(id = R.string.drag))
-                                            }
+                                        CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.medium) {
+                                            Text(text = stringResource(id = R.string.drag))
                                         }
                                     }
                                 }

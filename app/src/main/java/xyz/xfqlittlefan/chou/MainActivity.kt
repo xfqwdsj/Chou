@@ -70,6 +70,7 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
 
+                            with(LocalDensity.current) {
                             val elevationOverlay = LocalElevationOverlay.current
                             val draggableBarAlpha by animateFloatAsState(
                                 targetValue = if (viewModel.dragging) 0.15f else 0.05f,
@@ -91,7 +92,7 @@ class MainActivity : ComponentActivity() {
                                 contentAlignment = Alignment.Center
                             ) {
                                 val width by animateDpAsState(
-                                    targetValue = (constraints.maxWidth * if (viewModel.dragging) 0.2f else 0.1f).dp
+                                    targetValue = (constraints.maxWidth * if (viewModel.dragging) 0.25f else 0.15f).toDp()
                                 )
                                 Spacer(
                                     modifier = Modifier
@@ -100,7 +101,6 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
                             Spacer(modifier = Modifier.height(10.dp))
-                            with(LocalDensity.current) {
                                 var dragging by remember { mutableStateOf(false) }
                                 val alpha by animateFloatAsState(targetValue = if (dragging) 0.15f else 0.1f)
                                 val enabled = !viewModel.visible
@@ -130,7 +130,6 @@ class MainActivity : ComponentActivity() {
                                         }
                                     }
                                 }
-                            }
                             TextButton(
                                 onClick = {
                                     if (viewModel.visible) {
@@ -269,6 +268,7 @@ class MainActivity : ComponentActivity() {
                                             )
                                         )
                                 )
+                            }
                             }
                         },
                         modifier = Modifier.fillMaxSize(),

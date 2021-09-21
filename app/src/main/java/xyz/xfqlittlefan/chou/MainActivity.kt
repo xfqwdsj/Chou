@@ -86,7 +86,7 @@ class MainActivity : ComponentActivity() {
                                 ).background(color = topSpacerColor))
                             Box(
                                 modifier = Modifier.fillMaxWidth(),
-                                contentAlignment = Alignment.Center
+                                contentAlignment = Alignment.TopCenter
                             ) {
                                 AnimatedContent(
                                     targetState = viewModel.dragging,
@@ -113,7 +113,7 @@ class MainActivity : ComponentActivity() {
                             }
                             Spacer(modifier = Modifier.height(10.dp))
                             with(LocalDensity.current) {
-                                Box(modifier = Modifier.clip(RoundedCornerShape(10.dp)).fillMaxWidth()) {
+                                Box(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp))) {
                                     var dragging by remember { mutableStateOf(false) }
                                     val alpha by animateFloatAsState(targetValue = if (dragging) 0.15f else 0.1f)
                                     androidx.compose.animation.AnimatedVisibility(
@@ -123,6 +123,7 @@ class MainActivity : ComponentActivity() {
                                     ) {
                                         Box(
                                             modifier = Modifier.padding(horizontal = 10.dp).fillMaxWidth()
+                                                .clip(RoundedCornerShape(10.dp))
                                                 .background(color = MaterialTheme.colors.onSurface.copy(alpha = alpha))
                                                 .draggable(
                                                     state = rememberDraggableState {

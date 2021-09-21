@@ -1,6 +1,5 @@
 package xyz.xfqlittlefan.chou
 
-import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -52,6 +51,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             val controller = rememberSystemUiController()
             val isLight = MaterialTheme.colors.isLight
+            SideEffect {
+                controller.setNavigationBarColor(color = androidx.compose.ui.graphics.Color.Transparent)
+            }
 
             ProvideWindowInsets {
                 ChouTheme {
@@ -187,68 +189,58 @@ class MainActivity : ComponentActivity() {
                                         )
                                     ) {
                                         items(viewModel.list) { item ->
-                                            LaunchedEffect(Unit) {
-                                                item.state.targetState = true
-                                            }
-                                            androidx.compose.animation.AnimatedVisibility(
-                                                visibleState = item.state,
-                                                modifier = Modifier.fillMaxWidth(),
-                                                enter = expandVertically(),
-                                                exit = shrinkVertically()
+                                            Card(
+                                                modifier = Modifier
+                                                    .padding(horizontal = 10.dp, vertical = 5.dp)
+                                                    .fillMaxWidth(),
+                                                shape = RoundedCornerShape(10.dp),
+                                                border = BorderStroke(width = 1.dp, color = MaterialTheme.colors.onSurface.copy(alpha = 0.2f)),
+                                                elevation = 0.dp
                                             ) {
-                                                Card(
-                                                    modifier = Modifier
-                                                        .padding(horizontal = 10.dp, vertical = 5.dp)
-                                                        .fillMaxWidth(),
-                                                    shape = RoundedCornerShape(10.dp),
-                                                    border = BorderStroke(width = 1.dp, color = MaterialTheme.colors.onSurface.copy(alpha = 0.2f)),
-                                                    elevation = 0.dp
+                                                Row(
+                                                    modifier = Modifier.fillMaxWidth().padding(20.dp),
+                                                    verticalAlignment = Alignment.CenterVertically
                                                 ) {
-                                                    Row(
-                                                        modifier = Modifier.fillMaxWidth().padding(20.dp),
-                                                        verticalAlignment = Alignment.CenterVertically
+                                                    AnimatedContent(
+                                                        targetState = item.editing,
+                                                        modifier = Modifier.weight(1f),
+                                                        transitionSpec = { fadeIn() with fadeOut() },
+                                                        contentAlignment = Alignment.Center
+                                                    ) { editing ->
+                                                        Box(modifier = Modifier.clip(RoundedCornerShape(10.dp))) {
+                                                            TextField(
+                                                                value = item.editingString,
+                                                                onValueChange = { item.editingString = it },
+                                                                modifier = Modifier.fillMaxWidth(),
+                                                                enabled = editing,
+                                                                shape = RectangleShape
+                                                            )
+                                                        }
+                                                    }
+                                                    Spacer(modifier = Modifier.width(15.dp))
+                                                    AnimatedVisibility(
+                                                        visible = !item.editing,
+                                                        enter = fadeIn() + expandHorizontally(expandFrom = Alignment.Start),
+                                                        exit = shrinkHorizontally(shrinkTowards = Alignment.Start) + fadeOut()
                                                     ) {
-                                                        AnimatedContent(
-                                                            targetState = item.editing,
-                                                            modifier = Modifier.weight(1f),
-                                                            transitionSpec = { fadeIn() with fadeOut() },
-                                                            contentAlignment = Alignment.Center
-                                                        ) { editing ->
-                                                            Box(modifier = Modifier.clip(RoundedCornerShape(10.dp))) {
-                                                                TextField(
-                                                                    value = item.editingString,
-                                                                    onValueChange = { item.editingString = it },
-                                                                    modifier = Modifier.fillMaxWidth(),
-                                                                    enabled = editing,
-                                                                    shape = RectangleShape
-                                                                )
-                                                            }
+                                                        Row {
+                                                            IconButton(
+                                                                onClick = { item.editing = true }
+                                                            ) { Icon(imageVector = Icons.Filled.Edit, contentDescription = stringResource(id = R.string.edit_item)) }
                                                         }
-                                                        Spacer(modifier = Modifier.width(15.dp))
-                                                        AnimatedVisibility(
-                                                            visible = !item.editing,
-                                                            enter = fadeIn() + expandHorizontally(expandFrom = Alignment.Start),
-                                                            exit = shrinkHorizontally(shrinkTowards = Alignment.Start) + fadeOut()
-                                                        ) {
-                                                            Row {
-                                                                IconButton(
-                                                                    onClick = { item.editing = true }
-                                                                ) { Icon(imageVector = Icons.Filled.Edit, contentDescription = stringResource(id = R.string.edit_item)) }
-                                                            }
-                                                        }
-                                                        AnimatedVisibility(
-                                                            visible = item.editing,
-                                                            enter = fadeIn() + expandHorizontally(expandFrom = Alignment.End),
-                                                            exit = shrinkHorizontally(shrinkTowards = Alignment.End) + fadeOut()
-                                                        ) {
-                                                            Row {
-                                                                IconButton(
-                                                                    onClick = { item.editing = false; item.editingString = item.string }
-                                                                ) { Icon(imageVector = Icons.Filled.Close, contentDescription = stringResource(id = R.string.cancel)) }
-                                                                IconButton(
-                                                                    onClick = { item.editing = false; item.string = item.editingString }
-                                                                ) { Icon(imageVector = Icons.Filled.Done, contentDescription = stringResource(id = R.string.ok)) }
-                                                            }
+                                                    }
+                                                    AnimatedVisibility(
+                                                        visible = item.editing,
+                                                        enter = fadeIn() + expandHorizontally(expandFrom = Alignment.End),
+                                                        exit = shrinkHorizontally(shrinkTowards = Alignment.End) + fadeOut()
+                                                    ) {
+                                                        Row {
+                                                            IconButton(
+                                                                onClick = { item.editing = false; item.editingString = item.string }
+                                                            ) { Icon(imageVector = Icons.Filled.Close, contentDescription = stringResource(id = R.string.cancel)) }
+                                                            IconButton(
+                                                                onClick = { item.editing = false; item.string = item.editingString }
+                                                            ) { Icon(imageVector = Icons.Filled.Done, contentDescription = stringResource(id = R.string.ok)) }
                                                         }
                                                     }
                                                 }

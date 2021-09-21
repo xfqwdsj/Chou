@@ -1,8 +1,5 @@
 package xyz.xfqlittlefan.chou
 
-import android.util.Log
-import androidx.compose.animation.core.MutableTransitionState
-import androidx.compose.foundation.gestures.DraggableState
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material.*
 import androidx.compose.runtime.getValue
@@ -69,6 +66,5 @@ class ActivityViewModel : ViewModel() {
         var string by mutableStateOf("")
         var editingString by mutableStateOf("")
         var editing by mutableStateOf(true)
-        val state = MutableTransitionState(false)
     }
 }

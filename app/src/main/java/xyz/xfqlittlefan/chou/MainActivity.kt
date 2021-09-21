@@ -22,12 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -59,47 +54,39 @@ class MainActivity : ComponentActivity() {
                 ChouTheme {
                     BottomSheetScaffold(
                         sheetContent = {
-                            AnimatedVisibility(
-                                visible = (viewModel.sheetProgress.to == BottomSheetValue.Collapsed
-                                        && viewModel.sheetProgress.fraction <= 0.7f)
-                                        || (viewModel.sheetProgress.to == BottomSheetValue.Expanded
-                                        && viewModel.sheetProgress.fraction >= 0.3f)
-                            ) {
-                                val elevationOverlay = LocalElevationOverlay.current
-                                val absoluteElevation = LocalAbsoluteElevation.current + AppBarDefaults.TopAppBarElevation
-                                val backgroundColor = if (MaterialTheme.colors.primarySurface == MaterialTheme.colors.surface && elevationOverlay != null) {
-                                    elevationOverlay.apply(MaterialTheme.colors.primarySurface, absoluteElevation)
-                                } else {
-                                    MaterialTheme.colors.primarySurface
-                                }
-                                Column {
-                                    Spacer(modifier = Modifier
-                                        .fillMaxWidth().height(
-                                            with(LocalDensity.current) {
-                                                when (viewModel.sheetProgress.to) {
-                                                    BottomSheetValue.Collapsed -> LocalWindowInsets.current.statusBars.top - LocalWindowInsets.current.statusBars.top * viewModel.sheetProgress.fraction
-                                                    BottomSheetValue.Expanded -> LocalWindowInsets.current.statusBars.top * viewModel.sheetProgress.fraction
-                                                    else -> 0f
-                                                }.toDp()
-                                            }
-                                        ).background(color = backgroundColor))
-                                    Spacer(
-                                        modifier = Modifier
-                                            .fillMaxWidth().height(10.dp)
-                                            .background(
-                                                brush = Brush.verticalGradient(
-                                                    colors = listOf(
-                                                        backgroundColor,
-                                                        androidx.compose.ui.graphics.Color.Transparent
-                                                    )
-                                                )
-                                            )
-                                    )
-                                }
+                            val elevationOverlay = LocalElevationOverlay.current
+                            val statusBarColor = if (MaterialTheme.colors.primarySurface == MaterialTheme.colors.surface && elevationOverlay != null) {
+                                elevationOverlay.apply(MaterialTheme.colors.primarySurface, LocalAbsoluteElevation.current + AppBarDefaults.TopAppBarElevation)
+                            } else {
+                                MaterialTheme.colors.primarySurface
                             }
-                            Column(
-                                modifier = Modifier.fillMaxWidth().padding(15.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
+                            val topSpacerColor by animateColorAsState(
+                                targetValue = if ((viewModel.sheetProgress.to == BottomSheetValue.Expanded
+                                            && viewModel.sheetProgress.fraction == 1f)
+                                    || (viewModel.sheetProgress.to == BottomSheetValue.Collapsed
+                                            && viewModel.sheetProgress.fraction == 0f)
+                                ) {
+                                    statusBarColor
+                                } else {
+                                    elevationOverlay?.apply(MaterialTheme.colors.surface, LocalAbsoluteElevation.current + BottomSheetScaffoldDefaults.SheetElevation) ?: MaterialTheme.colors.surface
+                                }
+                            )
+                            val draggableBarAlpha by animateFloatAsState(
+                                targetValue = if (viewModel.dragging) 0.15f else 0.05f
+                            )
+                            Spacer(modifier = Modifier
+                                .fillMaxWidth().height(
+                                    with(LocalDensity.current) {
+                                        when (viewModel.sheetProgress.to) {
+                                            BottomSheetValue.Collapsed -> LocalWindowInsets.current.statusBars.top - LocalWindowInsets.current.statusBars.top * viewModel.sheetProgress.fraction
+                                            BottomSheetValue.Expanded -> LocalWindowInsets.current.statusBars.top * viewModel.sheetProgress.fraction
+                                            else -> 0f
+                                        }.toDp()
+                                    }
+                                ).background(color = topSpacerColor))
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.Center
                             ) {
                                 AnimatedContent(
                                     targetState = viewModel.dragging,
@@ -107,14 +94,26 @@ class MainActivity : ComponentActivity() {
                                 ) {
                                     Spacer(
                                         modifier = Modifier
-                                            .width(60.dp).height(5.dp).clip(CircleShape)
-                                            .background(color = MaterialTheme.colors.onSurface.copy(alpha = if (it) 0.15f else 0.05f))
+                                            .padding(15.dp).width(60.dp).height(5.dp).clip(CircleShape)
+                                            .background(color = MaterialTheme.colors.onSurface.copy(alpha = draggableBarAlpha))
                                     )
                                 }
+                                Spacer(
+                                    modifier = Modifier
+                                        .fillMaxWidth().height(5.dp)
+                                        .background(
+                                            brush = Brush.verticalGradient(
+                                                colors = listOf(
+                                                    topSpacerColor,
+                                                    androidx.compose.ui.graphics.Color.Transparent
+                                                )
+                                            )
+                                        )
+                                )
                             }
                             Spacer(modifier = Modifier.height(10.dp))
                             with(LocalDensity.current) {
-                                Box(modifier = Modifier.clip(RoundedCornerShape(10.dp))) {
+                                Box(modifier = Modifier.clip(RoundedCornerShape(10.dp)).fillMaxWidth()) {
                                     var dragging by remember { mutableStateOf(false) }
                                     val alpha by animateFloatAsState(targetValue = if (dragging) 0.15f else 0.1f)
                                     androidx.compose.animation.AnimatedVisibility(
@@ -204,7 +203,7 @@ class MainActivity : ComponentActivity() {
                                         contentPadding = rememberInsetsPaddingValues(
                                             insets = LocalWindowInsets.current.navigationBars,
                                             applyBottom = true,
-                                            additionalTop = 10.dp
+                                            additionalTop = 5.dp
                                         )
                                     ) {
                                         items(viewModel.list) { item ->
@@ -277,15 +276,13 @@ class MainActivity : ComponentActivity() {
                                         }
                                     }
                                 }
-                                val elevationOverlay = LocalElevationOverlay.current
-                                val absoluteElevation = LocalAbsoluteElevation.current + BottomSheetScaffoldDefaults.SheetElevation
                                 Spacer(
                                     modifier = Modifier
-                                        .fillMaxWidth().height(10.dp)
+                                        .fillMaxWidth().height(5.dp)
                                         .background(
                                             brush = Brush.verticalGradient(
                                                 colors = listOf(
-                                                    elevationOverlay?.apply(MaterialTheme.colors.surface, absoluteElevation) ?: MaterialTheme.colors.surface,
+                                                    elevationOverlay?.apply(MaterialTheme.colors.surface, LocalAbsoluteElevation.current + BottomSheetScaffoldDefaults.SheetElevation) ?: MaterialTheme.colors.surface,
                                                     androidx.compose.ui.graphics.Color.Transparent
                                                 )
                                             )

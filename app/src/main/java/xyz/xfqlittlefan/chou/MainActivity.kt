@@ -7,6 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.animation.*
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.Orientation
@@ -55,24 +56,21 @@ class MainActivity : ComponentActivity() {
                     BottomSheetScaffold(
                         sheetContent = {
                             val elevationOverlay = LocalElevationOverlay.current
-                            val statusBarColor = if (MaterialTheme.colors.primarySurface == MaterialTheme.colors.surface && elevationOverlay != null) {
-                                elevationOverlay.apply(MaterialTheme.colors.primarySurface, LocalAbsoluteElevation.current + AppBarDefaults.TopAppBarElevation)
-                            } else {
-                                MaterialTheme.colors.primarySurface
-                            }
                             val topSpacerColor by animateColorAsState(
                                 targetValue = if ((viewModel.sheetProgress.to == BottomSheetValue.Expanded
                                             && viewModel.sheetProgress.fraction == 1f)
                                     || (viewModel.sheetProgress.to == BottomSheetValue.Collapsed
                                             && viewModel.sheetProgress.fraction == 0f)
                                 ) {
-                                    statusBarColor
+                                    MaterialTheme.colors.onBackground.copy(alpha = 0.3f)
                                 } else {
                                     elevationOverlay?.apply(MaterialTheme.colors.surface, LocalAbsoluteElevation.current + BottomSheetScaffoldDefaults.SheetElevation) ?: MaterialTheme.colors.surface
-                                }
+                                },
+                                animationSpec = tween(durationMillis = 700)
                             )
                             val draggableBarAlpha by animateFloatAsState(
-                                targetValue = if (viewModel.dragging) 0.15f else 0.05f
+                                targetValue = if (viewModel.dragging) 0.15f else 0.05f,
+                                animationSpec = tween(durationMillis = 500)
                             )
                             Spacer(modifier = Modifier
                                 .fillMaxWidth().height(
@@ -88,16 +86,11 @@ class MainActivity : ComponentActivity() {
                                 modifier = Modifier.fillMaxWidth(),
                                 contentAlignment = Alignment.TopCenter
                             ) {
-                                AnimatedContent(
-                                    targetState = viewModel.dragging,
-                                    transitionSpec = { fadeIn() with fadeOut() }
-                                ) {
                                     Spacer(
                                         modifier = Modifier
                                             .padding(15.dp).width(60.dp).height(5.dp).clip(CircleShape)
                                             .background(color = MaterialTheme.colors.onSurface.copy(alpha = draggableBarAlpha))
                                     )
-                                }
                                 Spacer(
                                     modifier = Modifier
                                         .fillMaxWidth().height(5.dp)
@@ -123,7 +116,7 @@ class MainActivity : ComponentActivity() {
                                     ) {
                                         Box(
                                             modifier = Modifier.padding(horizontal = 10.dp).fillMaxWidth()
-                                                .clip(RoundedCornerShape(10.dp))
+                                                //.clip(RoundedCornerShape(10.dp))
                                                 .background(color = MaterialTheme.colors.onSurface.copy(alpha = alpha))
                                                 .draggable(
                                                     state = rememberDraggableState {

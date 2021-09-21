@@ -37,6 +37,7 @@ import com.google.accompanist.insets.LocalWindowInsets
 import com.google.accompanist.insets.ProvideWindowInsets
 import com.google.accompanist.insets.rememberInsetsPaddingValues
 import com.google.accompanist.insets.ui.TopAppBar
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import xyz.xfqlittlefan.chou.ui.theme.ChouTheme
 import kotlin.math.roundToInt
 
@@ -51,6 +52,18 @@ class MainActivity : ComponentActivity() {
         window.navigationBarColor = Color.TRANSPARENT
 
         setContent {
+            val controller = rememberSystemUiController()
+            SideEffect {
+                controller.setSystemBarsColor(
+                    color = androidx.compose.ui.graphics.Color.Transparent,
+                    darkIcons = MaterialTheme.colors.isLight &&
+                            ((viewModel.sheetProgress.to == BottomSheetValue.Expanded
+                                    && viewModel.sheetProgress.fraction >= 0.9)
+                                    || (viewModel.sheetProgress.to == BottomSheetValue.Collapsed
+                                    && viewModel.sheetProgress.fraction <= 0.1))
+                )
+            }
+
             ProvideWindowInsets {
                 ChouTheme {
                     BottomSheetScaffold(
@@ -98,13 +111,12 @@ class MainActivity : ComponentActivity() {
                                         ).padding(10.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    androidx.compose.animation.AnimatedVisibility(
-                                        visible = !viewModel.visible,
-                                        enter = fadeIn(),
-                                        exit = fadeOut()
+                                    AnimatedContent(
+                                        targetState = !viewModel.visible,
+                                        transitionSpec = { fadeIn() with fadeOut() }
                                     ) {
-                                        CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.medium) {
-                                            Text(text = stringResource(id = R.string.drag))
+                                        CompositionLocalProvider(LocalContentAlpha provides if (it) ContentAlpha.medium else ContentAlpha.disabled) {
+                                            Text(text = stringResource(id = if (it) R.string.drag else R.string.drag_disabled))
                                         }
                                     }
                                 }

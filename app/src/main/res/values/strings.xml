@@ -9,4 +9,5 @@
     <string name="ok">确认</string>
     <string name="drag">拖动调整数量</string>
     <string name="count">" 个"</string>
+    <string name="drag_disabled">拖动已禁用</string>
 </resources>

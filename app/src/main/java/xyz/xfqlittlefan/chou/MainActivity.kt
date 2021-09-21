@@ -104,10 +104,10 @@ class MainActivity : ComponentActivity() {
                                 var dragging by remember { mutableStateOf(false) }
                                 val alpha by animateFloatAsState(targetValue = if (dragging) 0.15f else 0.1f)
                                 val enabled = !viewModel.visible
-                                        || (viewModel.sheetProgress.to == BottomSheetValue.Expanded
-                                        && viewModel.sheetProgress.fraction < 1f)
+                                        && ((viewModel.sheetProgress.to == BottomSheetValue.Expanded
+                                        && viewModel.sheetProgress.fraction == 1f)
                                         || (viewModel.sheetProgress.to == BottomSheetValue.Collapsed
-                                        && viewModel.sheetProgress.fraction > 0f)
+                                        && viewModel.sheetProgress.fraction == 0f))
                                 Box(
                                     modifier = Modifier.padding(horizontal = 10.dp).fillMaxWidth()
                                         .clip(RoundedCornerShape(10.dp))

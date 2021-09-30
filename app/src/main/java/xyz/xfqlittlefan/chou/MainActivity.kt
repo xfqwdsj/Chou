@@ -284,7 +284,7 @@ class MainActivity : ComponentActivity() {
                                 title = { Text(text = stringResource(id = R.string.app_name)) },
                                 contentPadding = rememberInsetsPaddingValues(insets = LocalWindowInsets.current.statusBars),
                                 actions = {
-                                    AnimatedVisibility(visible = viewModel.state == 3) {
+                                    AnimatedVisibility(visible = viewModel.state == 2) {
                                         IconButton(onClick = { viewModel.reset() }) {
                                             Icon(
                                                 imageVector = Icons.Filled.Refresh,

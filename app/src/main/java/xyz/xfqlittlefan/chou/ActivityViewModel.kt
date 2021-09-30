@@ -8,6 +8,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -24,8 +25,12 @@ class ActivityViewModel : ViewModel() {
         get() = scaffoldState.bottomSheetState
 
     @OptIn(ExperimentalMaterialApi::class)
-    val sheetProgress
-        get() = sheetState.progress
+    val sheetFraction
+        get() = when (sheetState.progress.to) {
+            BottomSheetValue.Expanded -> sheetState.progress.fraction
+            BottomSheetValue.Collapsed -> 1f - sheetState.progress.fraction
+            else -> 0f
+        }
 
     @OptIn(ExperimentalMaterialApi::class)
     val dragging: Boolean
@@ -33,7 +38,7 @@ class ActivityViewModel : ViewModel() {
 
     var visible by mutableStateOf(false)
 
-    val listState = LazyListState()
+    var listState = LazyListState()
 
     var list by mutableStateOf(listOf<Item>())
         private set
@@ -50,9 +55,12 @@ class ActivityViewModel : ViewModel() {
 
     var state by mutableStateOf(0)
 
+    var current by mutableStateOf(0)
+
     @OptIn(DelicateCoroutinesApi::class)
     fun add(quantity: Int) {
         GlobalScope.launch {
+            listState = LazyListState()
             list = List(quantity) { Item() }
             visible = true
         }
@@ -60,6 +68,30 @@ class ActivityViewModel : ViewModel() {
 
     fun clear() {
         visible = false
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    fun start() {
+        state = 1
+        val time = (1000..1500).random()
+        val interval = (100..150).random()
+        val job = GlobalScope.launch {
+            if (current + 1 == list.size) current = 0 else current++
+            delay(interval.toLong())
+        }
+        GlobalScope.launch {
+            delay(time.toLong())
+            job.cancel()
+            state = 2
+        }
+    }
+
+    fun reset() {
+        visible = false
+        listState = LazyListState()
+        list = listOf()
+        state = 0
+        current = 0
     }
 
     class Item {

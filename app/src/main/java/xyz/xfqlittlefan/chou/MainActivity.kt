@@ -16,13 +16,16 @@ import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,74 +54,68 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val controller = rememberSystemUiController()
-            val isLight = MaterialTheme.colors.isLight
             SideEffect {
                 controller.setNavigationBarColor(color = androidx.compose.ui.graphics.Color.Transparent)
             }
 
             ProvideWindowInsets {
                 ChouTheme {
+                    val cardRadius = animateDpAsState(
+                        targetValue = (if (viewModel.sheetFraction == 1f) 0 else 20).dp
+                    )
+                    val peekHeight = animateDpAsState(
+                        targetValue = if (viewModel.state == 0) with(LocalDensity.current) {
+                            LocalWindowInsets.current.navigationBars.bottom.toDp() + 100.dp
+                        } else 0.dp
+                    )
+
                     BottomSheetScaffold(
                         sheetContent = {
+                            val isLight = MaterialTheme.colors.isLight
                             SideEffect {
                                 controller.setStatusBarColor(
                                     color = androidx.compose.ui.graphics.Color.Transparent,
-                                    darkIcons = isLight && ((viewModel.sheetProgress.to == BottomSheetValue.Expanded
-                                            && viewModel.sheetProgress.fraction >= 0.9)
-                                            || (viewModel.sheetProgress.to == BottomSheetValue.Collapsed
-                                            && viewModel.sheetProgress.fraction <= 0.1))
+                                    darkIcons = isLight && viewModel.sheetFraction >= 0.9f
                                 )
                             }
 
                             with(LocalDensity.current) {
-                            val elevationOverlay = LocalElevationOverlay.current
-                            val draggableBarAlpha by animateFloatAsState(
-                                targetValue = if (viewModel.dragging) 0.15f else 0.05f,
-                                animationSpec = tween(durationMillis = 500)
-                            )
-                            Spacer(modifier = Modifier
-                                .fillMaxWidth().height(
-                                    with(LocalDensity.current) {
-                                        when (viewModel.sheetProgress.to) {
-                                            BottomSheetValue.Collapsed -> LocalWindowInsets.current.statusBars.top - LocalWindowInsets.current.statusBars.top * viewModel.sheetProgress.fraction
-                                            BottomSheetValue.Expanded -> LocalWindowInsets.current.statusBars.top * viewModel.sheetProgress.fraction
-                                            else -> 0f
-                                        }.toDp()
-                                    }
-                                )
-                            )
-                            BoxWithConstraints(
-                                modifier = Modifier.fillMaxWidth(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                val width by animateDpAsState(
-                                    targetValue = (constraints.maxWidth * if (viewModel.dragging) 0.25f else 0.15f).toDp()
+                                val elevationOverlay = LocalElevationOverlay.current
+                                val draggableBarAlpha by animateFloatAsState(
+                                    targetValue = if (viewModel.dragging) 0.15f else 0.05f,
+                                    animationSpec = tween(durationMillis = 500)
                                 )
                                 Spacer(
-                                    modifier = Modifier
-                                        .padding(15.dp).width(width).height(5.dp).clip(CircleShape)
-                                        .background(color = MaterialTheme.colors.onSurface.copy(alpha = draggableBarAlpha))
+                                    modifier = Modifier.fillMaxWidth()
+                                        .height((LocalWindowInsets.current.statusBars.top * viewModel.sheetFraction).toDp())
                                 )
-                            }
-                            Spacer(modifier = Modifier.height(10.dp))
+                                BoxWithConstraints(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    val width by animateDpAsState(
+                                        targetValue = (constraints.maxWidth * if (viewModel.dragging) 0.25f else 0.15f).toDp()
+                                    )
+                                    Spacer(
+                                        modifier = Modifier
+                                            .padding(15.dp).width(width).height(5.dp).clip(CircleShape)
+                                            .background(color = MaterialTheme.colors.onSurface.copy(alpha = draggableBarAlpha))
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(10.dp))
                                 var dragging by remember { mutableStateOf(false) }
                                 val alpha by animateFloatAsState(targetValue = if (dragging) 0.15f else 0.1f)
-                                val enabled = !viewModel.visible
-                                        && ((viewModel.sheetProgress.to == BottomSheetValue.Expanded
-                                        && viewModel.sheetProgress.fraction == 1f)
-                                        || (viewModel.sheetProgress.to == BottomSheetValue.Collapsed
-                                        && viewModel.sheetProgress.fraction == 0f))
+                                val enabled = !viewModel.visible && viewModel.sheetFraction == 1f
+                                val modifier = Modifier.padding(horizontal = 10.dp).fillMaxWidth()
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(color = MaterialTheme.colors.onSurface.copy(alpha = alpha))
                                 Box(
-                                    modifier = Modifier.padding(horizontal = 10.dp).fillMaxWidth()
-                                        .clip(RoundedCornerShape(10.dp))
-                                        .background(color = MaterialTheme.colors.onSurface.copy(alpha = alpha))
-                                        .draggable(
-                                            state = rememberDraggableState {
-                                                if (enabled) viewModel.offset += it.toDp().value
-                                            }, orientation = Orientation.Horizontal,
-                                            onDragStarted = { if (enabled) dragging = true },
-                                            onDragStopped = { dragging = false }
-                                        ).padding(10.dp),
+                                    modifier = if (enabled) modifier.draggable(
+                                        state = rememberDraggableState { viewModel.offset += it.toDp().value },
+                                        orientation = Orientation.Horizontal,
+                                        onDragStarted = { dragging = true },
+                                        onDragStopped = { dragging = false }
+                                    ).padding(10.dp) else modifier.padding(10.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     AnimatedContent(
@@ -126,149 +123,158 @@ class MainActivity : ComponentActivity() {
                                         transitionSpec = { fadeIn() with fadeOut() }
                                     ) {
                                         CompositionLocalProvider(LocalContentAlpha provides if (it) ContentAlpha.medium else ContentAlpha.disabled) {
-                                            Text(text = stringResource(id = if (it) R.string.drag else R.string.drag_disabled))
+                                            Text(
+                                                text = stringResource(id = R.string.drag)
+                                                        + if (it) "" else stringResource(id = R.string.disabled)
+                                            )
                                         }
                                     }
                                 }
-                            TextButton(
-                                onClick = {
-                                    if (viewModel.visible) {
-                                        viewModel.clear()
-                                    } else {
-                                        viewModel.add((viewModel.offset / 50).roundToInt())
-                                    }
-                                },
-                                modifier = Modifier.padding(10.dp).fillMaxWidth(),
-                                shape = RoundedCornerShape(10.dp)
-                            ) {
                                 AnimatedContent(
-                                    targetState = viewModel.visible,
-                                    transitionSpec = {
-                                        if (targetState) {
-                                            fadeIn() + slideInVertically({ -it }) with
-                                                    slideOutVertically({ it }) + fadeOut()
-                                        } else {
-                                            fadeIn() + slideInVertically({ it }) with
-                                                    slideOutVertically({ -it }) + fadeOut()
-                                        }
-                                    }
-                                ) {
-                                    Row {
-                                        Text(
-                                            text = stringResource(id = if (it) R.string.reset else R.string.add_item)
-                                        )
+                                    targetState = viewModel.sheetFraction == 1f,
+                                    transitionSpec = { fadeIn() with fadeOut() }
+                                ) { enabledIt ->
+                                    TextButton(
+                                        onClick = {
+                                            if (viewModel.visible) {
+                                                viewModel.clear()
+                                            } else {
+                                                viewModel.add((viewModel.offset / 50).roundToInt())
+                                            }
+                                        },
+                                        modifier = Modifier.padding(10.dp).fillMaxWidth(),
+                                        enabled = enabledIt,
+                                        shape = RoundedCornerShape(10.dp)
+                                    ) {
                                         AnimatedContent(
-                                            targetState = (viewModel.offset / 50).roundToInt(),
+                                            targetState = viewModel.visible,
                                             transitionSpec = {
-                                                when {
-                                                    targetState > initialState -> {
-                                                        fadeIn() + slideInVertically({ it }) with
-                                                                slideOutVertically({ -it }) + fadeOut()
-                                                    }
-                                                    targetState < initialState -> {
-                                                        fadeIn() + slideInVertically({ -it }) with
-                                                                slideOutVertically({ it }) + fadeOut()
-                                                    }
-                                                    else -> fadeIn() with fadeOut()
+                                                if (targetState) {
+                                                    fadeIn() + slideInVertically({ -it }) with
+                                                            slideOutVertically({ it }) + fadeOut()
+                                                } else {
+                                                    fadeIn() + slideInVertically({ it }) with
+                                                            slideOutVertically({ -it }) + fadeOut()
                                                 }
                                             }
                                         ) {
-                                            Text(text = it.toString())
+                                            Row {
+                                                Text(
+                                                    text = stringResource(id = if (it) R.string.clear_item else R.string.add_item)
+                                                )
+                                                AnimatedContent(
+                                                    targetState = (viewModel.offset / 50).roundToInt(),
+                                                    transitionSpec = {
+                                                        when {
+                                                            targetState > initialState -> {
+                                                                fadeIn() + slideInVertically({ it }) with
+                                                                        slideOutVertically({ -it }) + fadeOut()
+                                                            }
+                                                            targetState < initialState -> {
+                                                                fadeIn() + slideInVertically({ -it }) with
+                                                                        slideOutVertically({ it }) + fadeOut()
+                                                            }
+                                                            else -> fadeIn() with fadeOut()
+                                                        }
+                                                    }
+                                                ) {
+                                                    Text(text = it.toString())
+                                                }
+                                                Text(text = stringResource(id = R.string.count))
+                                            }
                                         }
-                                        Text(text = stringResource(id = R.string.count))
                                     }
                                 }
-                            }
-                            Spacer(modifier = Modifier.height(10.dp))
-                            Box(modifier = Modifier.fillMaxSize()) {
-                                androidx.compose.animation.AnimatedVisibility(
-                                    visible = viewModel.visible,
-                                    modifier = Modifier.fillMaxSize(),
-                                    enter = fadeIn(),
-                                    exit = fadeOut()
-                                ) {
-                                    LazyColumn(
+                                Spacer(modifier = Modifier.height(10.dp))
+                                Box(modifier = Modifier.fillMaxSize()) {
+                                    androidx.compose.animation.AnimatedVisibility(
+                                        visible = viewModel.visible,
                                         modifier = Modifier.fillMaxSize(),
-                                        state = viewModel.listState,
-                                        contentPadding = rememberInsetsPaddingValues(
-                                            insets = LocalWindowInsets.current.navigationBars,
-                                            applyBottom = true,
-                                            additionalTop = 5.dp
-                                        )
+                                        enter = fadeIn(),
+                                        exit = fadeOut()
                                     ) {
-                                        items(viewModel.list) { item ->
-                                            Card(
-                                                modifier = Modifier
-                                                    .padding(horizontal = 10.dp, vertical = 5.dp)
-                                                    .fillMaxWidth(),
-                                                shape = RoundedCornerShape(10.dp),
-                                                border = BorderStroke(width = 1.dp, color = MaterialTheme.colors.onSurface.copy(alpha = 0.2f)),
-                                                elevation = 0.dp
-                                            ) {
-                                                Row(
-                                                    modifier = Modifier.fillMaxWidth().padding(20.dp),
-                                                    verticalAlignment = Alignment.CenterVertically
+                                        LazyColumn(
+                                            modifier = Modifier.fillMaxSize(),
+                                            state = viewModel.listState,
+                                            contentPadding = rememberInsetsPaddingValues(
+                                                insets = LocalWindowInsets.current.navigationBars,
+                                                applyBottom = true,
+                                                additionalTop = 5.dp
+                                            )
+                                        ) {
+                                            items(viewModel.list) { item ->
+                                                Card(
+                                                    modifier = Modifier
+                                                        .padding(horizontal = 10.dp, vertical = 5.dp)
+                                                        .fillMaxWidth(),
+                                                    shape = RoundedCornerShape(10.dp),
+                                                    border = BorderStroke(width = 1.dp, color = MaterialTheme.colors.onSurface.copy(alpha = 0.2f)),
+                                                    elevation = 0.dp
                                                 ) {
-                                                    AnimatedContent(
-                                                        targetState = item.editing,
-                                                        modifier = Modifier.weight(1f),
-                                                        transitionSpec = { fadeIn() with fadeOut() },
-                                                        contentAlignment = Alignment.Center
-                                                    ) { editing ->
-                                                        Box(modifier = Modifier.clip(RoundedCornerShape(10.dp))) {
-                                                            TextField(
-                                                                value = item.editingString,
-                                                                onValueChange = { item.editingString = it },
-                                                                modifier = Modifier.fillMaxWidth(),
-                                                                enabled = editing,
-                                                                shape = RectangleShape
-                                                            )
-                                                        }
-                                                    }
-                                                    Spacer(modifier = Modifier.width(15.dp))
-                                                    AnimatedVisibility(
-                                                        visible = !item.editing,
-                                                        enter = fadeIn() + expandHorizontally(expandFrom = Alignment.Start),
-                                                        exit = shrinkHorizontally(shrinkTowards = Alignment.Start) + fadeOut()
+                                                    Row(
+                                                        modifier = Modifier.fillMaxWidth().padding(20.dp),
+                                                        verticalAlignment = Alignment.CenterVertically
                                                     ) {
-                                                        Row {
-                                                            IconButton(
-                                                                onClick = { item.editing = true }
-                                                            ) { Icon(imageVector = Icons.Filled.Edit, contentDescription = stringResource(id = R.string.edit_item)) }
+                                                        AnimatedContent(
+                                                            targetState = item.editing,
+                                                            modifier = Modifier.weight(1f),
+                                                            transitionSpec = { fadeIn() with fadeOut() },
+                                                            contentAlignment = Alignment.Center
+                                                        ) { editing ->
+                                                            Box(modifier = Modifier.clip(RoundedCornerShape(10.dp))) {
+                                                                TextField(
+                                                                    value = item.editingString,
+                                                                    onValueChange = { item.editingString = it },
+                                                                    modifier = Modifier.fillMaxWidth(),
+                                                                    enabled = editing,
+                                                                    shape = RectangleShape
+                                                                )
+                                                            }
                                                         }
-                                                    }
-                                                    AnimatedVisibility(
-                                                        visible = item.editing,
-                                                        enter = fadeIn() + expandHorizontally(expandFrom = Alignment.End),
-                                                        exit = shrinkHorizontally(shrinkTowards = Alignment.End) + fadeOut()
-                                                    ) {
-                                                        Row {
-                                                            IconButton(
-                                                                onClick = { item.editing = false; item.editingString = item.string }
-                                                            ) { Icon(imageVector = Icons.Filled.Close, contentDescription = stringResource(id = R.string.cancel)) }
-                                                            IconButton(
-                                                                onClick = { item.editing = false; item.string = item.editingString }
-                                                            ) { Icon(imageVector = Icons.Filled.Done, contentDescription = stringResource(id = R.string.ok)) }
+                                                        Spacer(modifier = Modifier.width(15.dp))
+                                                        AnimatedVisibility(
+                                                            visible = !item.editing,
+                                                            enter = fadeIn() + expandHorizontally(expandFrom = Alignment.Start),
+                                                            exit = shrinkHorizontally(shrinkTowards = Alignment.Start) + fadeOut()
+                                                        ) {
+                                                            Row {
+                                                                IconButton(
+                                                                    onClick = { item.editing = true }
+                                                                ) { Icon(imageVector = Icons.Filled.Edit, contentDescription = stringResource(id = R.string.edit_item)) }
+                                                            }
+                                                        }
+                                                        AnimatedVisibility(
+                                                            visible = item.editing,
+                                                            enter = fadeIn() + expandHorizontally(expandFrom = Alignment.End),
+                                                            exit = shrinkHorizontally(shrinkTowards = Alignment.End) + fadeOut()
+                                                        ) {
+                                                            Row {
+                                                                IconButton(
+                                                                    onClick = { item.editing = false; item.editingString = item.string }
+                                                                ) { Icon(imageVector = Icons.Filled.Close, contentDescription = stringResource(id = R.string.cancel)) }
+                                                                IconButton(
+                                                                    onClick = { item.editing = false; item.string = item.editingString }
+                                                                ) { Icon(imageVector = Icons.Filled.Done, contentDescription = stringResource(id = R.string.ok)) }
+                                                            }
                                                         }
                                                     }
                                                 }
                                             }
                                         }
                                     }
-                                }
-                                Spacer(
-                                    modifier = Modifier
-                                        .fillMaxWidth().height(5.dp)
-                                        .background(
-                                            brush = Brush.verticalGradient(
-                                                colors = listOf(
-                                                    elevationOverlay?.apply(MaterialTheme.colors.surface, LocalAbsoluteElevation.current + BottomSheetScaffoldDefaults.SheetElevation) ?: MaterialTheme.colors.surface,
-                                                    androidx.compose.ui.graphics.Color.Transparent
+                                    Spacer(
+                                        modifier = Modifier
+                                            .fillMaxWidth().height(5.dp)
+                                            .background(
+                                                brush = Brush.verticalGradient(
+                                                    colors = listOf(
+                                                        elevationOverlay?.apply(MaterialTheme.colors.surface, LocalAbsoluteElevation.current + BottomSheetScaffoldDefaults.SheetElevation) ?: MaterialTheme.colors.surface,
+                                                        androidx.compose.ui.graphics.Color.Transparent
+                                                    )
                                                 )
                                             )
-                                        )
-                                )
-                            }
+                                    )
+                                }
                             }
                         },
                         modifier = Modifier.fillMaxSize(),
@@ -276,15 +282,54 @@ class MainActivity : ComponentActivity() {
                         topBar = {
                             TopAppBar(
                                 title = { Text(text = stringResource(id = R.string.app_name)) },
-                                contentPadding = rememberInsetsPaddingValues(insets = LocalWindowInsets.current.statusBars)
+                                contentPadding = rememberInsetsPaddingValues(insets = LocalWindowInsets.current.statusBars),
+                                actions = {
+                                    AnimatedVisibility(visible = viewModel.state == 3) {
+                                        IconButton(onClick = { viewModel.reset() }) {
+                                            Icon(
+                                                imageVector = Icons.Filled.Refresh,
+                                                contentDescription = stringResource(id = R.string.reset)
+                                            )
+                                        }
+                                    }
+                                }
                             )
                         },
-                        sheetShape = RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp),
-                        sheetPeekHeight = with(LocalDensity.current) {
-                            LocalWindowInsets.current.navigationBars.bottom.toDp() + 100.dp
-                        }
+                        sheetShape = RoundedCornerShape(topStart = cardRadius.value, topEnd = cardRadius.value),
+                        sheetPeekHeight = peekHeight.value
                     ) {
-
+                        Column(
+                            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Spacer(modifier = Modifier.height(it.calculateTopPadding()))
+                            Row(modifier = Modifier.padding(50.dp).fillMaxWidth()) {
+                                AnimatedContent(
+                                    targetState = viewModel.state,
+                                    transitionSpec = { fadeIn() with fadeOut() }
+                                ) {
+                                    Text(text = stringResource(id = if (it == 3) R.string.chose_item else R.string.current_item))
+                                }
+                                AnimatedContent(
+                                    targetState = viewModel.current,
+                                    transitionSpec = {
+                                        fadeIn() + slideInVertically({ it }) with
+                                                slideOutVertically({ -it }) + fadeOut()
+                                    }
+                                ) {
+                                    Text(text = if (viewModel.list.isEmpty()) "" else viewModel.list[it].string)
+                                }
+                            }
+                            AnimatedVisibility(visible = viewModel.state == 0) {
+                                Button(
+                                    onClick = { viewModel.start() }
+                                ) {
+                                    Text(text = stringResource(id = R.string.choose))
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(it.calculateBottomPadding()))
+                        }
                     }
                 }
             }

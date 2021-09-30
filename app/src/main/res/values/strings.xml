@@ -2,12 +2,14 @@
     <string name="app_name">Chou</string>
     <string name="add_item">添加项目：</string>
     <string name="edit_item">修改项目</string>
-    <string name="choose">选我</string>
-    <string name="chose_item">恭喜获得</string>
-    <string name="reset">删除项目：</string>
+    <string name="choose">抽</string>
+    <string name="current_item">当前选项：</string>
+    <string name="clear_item">删除项目：</string>
     <string name="cancel">取消</string>
     <string name="ok">确认</string>
     <string name="drag">左右拖动调整数量</string>
     <string name="count">" 个"</string>
-    <string name="drag_disabled">左右拖动调整数量已禁用</string>
+    <string name="disabled">已禁用</string>
+    <string name="chose_item">恭喜获得：</string>
+    <string name="reset">重置</string>
 </resources>

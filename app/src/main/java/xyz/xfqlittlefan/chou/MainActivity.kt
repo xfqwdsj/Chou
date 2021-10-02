@@ -159,11 +159,11 @@ class MainActivity : ComponentActivity() {
                                             targetState = viewModel.visible,
                                             transitionSpec = {
                                                 if (targetState) {
-                                                    fadeIn() + slideInVertically { -it } with
-                                                            slideOutVertically { it } + fadeOut()
+                                                    fadeIn() + slideInVertically(initialOffsetY = { -it }) with
+                                                            slideOutVertically(targetOffsetY = { it }) + fadeOut()
                                                 } else {
-                                                    fadeIn() + slideInVertically { it } with
-                                                            slideOutVertically { -it } + fadeOut()
+                                                    fadeIn() + slideInVertically(initialOffsetY = { it }) with
+                                                            slideOutVertically(targetOffsetY = { -it }) + fadeOut()
                                                 }
                                             }
                                         ) {
@@ -176,12 +176,12 @@ class MainActivity : ComponentActivity() {
                                                     transitionSpec = {
                                                         when {
                                                             targetState > initialState -> {
-                                                                fadeIn() + slideInVertically { it } with
-                                                                        slideOutVertically { -it } + fadeOut()
+                                                                fadeIn() + slideInVertically(initialOffsetY = { it }) with
+                                                                        slideOutVertically(targetOffsetY = { -it }) + fadeOut()
                                                             }
                                                             targetState < initialState -> {
-                                                                fadeIn() + slideInVertically { -it } with
-                                                                        slideOutVertically { it } + fadeOut()
+                                                                fadeIn() + slideInVertically(initialOffsetY = { -it }) with
+                                                                        slideOutVertically(targetOffsetY = { it }) + fadeOut()
                                                             }
                                                             else -> fadeIn() with fadeOut()
                                                         }
@@ -337,10 +337,12 @@ class MainActivity : ComponentActivity() {
                                         }
                                         AnimatedContent(
                                             targetState = viewModel.current,
-                                            modifier = Modifier.padding(30.dp).fillMaxWidth(),
+                                            modifier = Modifier
+                                                .padding(30.dp)
+                                                .fillMaxWidth(),
                                             transitionSpec = {
-                                                (fadeIn() + slideInVertically { it } with
-                                                        slideOutVertically { -it } + fadeOut()).using(SizeTransform(clip = false))
+                                                (fadeIn() + slideInVertically(initialOffsetY = { it }) with
+                                                        slideOutVertically(targetOffsetY = { -it }) + fadeOut()).using(SizeTransform(clip = false))
                                             },
                                             contentAlignment = Alignment.Center
                                         ) {

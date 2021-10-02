@@ -321,29 +321,29 @@ class MainActivity : ComponentActivity() {
                             verticalArrangement = Arrangement.Center,
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Spacer(modifier = Modifier.height(it.calculateTopPadding()))
+                            Spacer(modifier = Modifier.height(it.calculateTopPadding() + 50.dp))
                             AnimatedContent(
                                 targetState = viewModel.visible,
                                 transitionSpec = { fadeIn() with fadeOut() }
                             ) { visible ->
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                     if (visible) {
-                                        Row(modifier = Modifier.padding(50.dp)) {
-                                            AnimatedContent(
-                                                targetState = viewModel.state,
-                                                transitionSpec = { fadeIn() with fadeOut() }
-                                            ) {
-                                                Text(text = stringResource(id = if (it == 2) R.string.chose_item else R.string.current_item), style = MaterialTheme.typography.h6)
+                                        AnimatedContent(
+                                            targetState = viewModel.state,
+                                            modifier = Modifier.padding(horizontal = 30.dp),
+                                            transitionSpec = { fadeIn() with fadeOut() }
+                                        ) {
+                                            Text(text = stringResource(id = if (it == 2) R.string.chose_item else R.string.current_item), style = MaterialTheme.typography.subtitle1)
+                                        }
+                                        AnimatedContent(
+                                            targetState = viewModel.current,
+                                            modifier = Modifier.padding(30.dp),
+                                            transitionSpec = {
+                                                (fadeIn() + slideInVertically({ it }) with
+                                                        slideOutVertically({ -it }) + fadeOut()).using(SizeTransform(clip = false))
                                             }
-                                            AnimatedContent(
-                                                targetState = viewModel.current,
-                                                transitionSpec = {
-                                                    fadeIn() + slideInVertically({ it }) with
-                                                            slideOutVertically({ -it }) + fadeOut()
-                                                }
-                                            ) {
-                                                Text(text = if (viewModel.list.isEmpty()) "" else viewModel.list[it].string, style = MaterialTheme.typography.h6)
-                                            }
+                                        ) {
+                                            Text(text = if (viewModel.list.isEmpty()) "" else viewModel.list[it].string, style = MaterialTheme.typography.h3)
                                         }
                                         AnimatedVisibility(visible = viewModel.state == 0) {
                                             Button(

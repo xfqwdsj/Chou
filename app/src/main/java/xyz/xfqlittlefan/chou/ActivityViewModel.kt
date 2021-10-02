@@ -77,7 +77,7 @@ class ActivityViewModel : ViewModel() {
     @OptIn(DelicateCoroutinesApi::class)
     fun start() {
         state = 1
-        val time = (list.size * (1000..1500).random()).toLong()
+        val time = (list.size * (500..700).random()).toLong()
         val job = GlobalScope.launch {
             while (true) {
                 if (current + 1 == list.size) current = 0 else current++

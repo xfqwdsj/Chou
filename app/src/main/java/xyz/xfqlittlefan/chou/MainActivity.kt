@@ -298,8 +298,8 @@ class MainActivity : ComponentActivity() {
                                 actions = {
                                     AnimatedVisibility(
                                         visible = viewModel.state == 2,
-                                        enter = fadeIn() + slideInHorizontally { it },
-                                        exit = fadeOut() + slideOutHorizontally { it }
+                                        enter = fadeIn() + slideInHorizontally(initialOffsetX = { it }),
+                                        exit = fadeOut() + slideOutHorizontally(targetOffsetX = { it })
                                     ) {
                                         IconButton(onClick = { viewModel.reset() }) {
                                             Icon(

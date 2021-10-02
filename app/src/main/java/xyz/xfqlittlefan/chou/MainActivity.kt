@@ -159,11 +159,11 @@ class MainActivity : ComponentActivity() {
                                             targetState = viewModel.visible,
                                             transitionSpec = {
                                                 if (targetState) {
-                                                    fadeIn() + slideInVertically({ -it }) with
-                                                            slideOutVertically({ it }) + fadeOut()
+                                                    fadeIn() + slideInVertically { -it } with
+                                                            slideOutVertically { it } + fadeOut()
                                                 } else {
-                                                    fadeIn() + slideInVertically({ it }) with
-                                                            slideOutVertically({ -it }) + fadeOut()
+                                                    fadeIn() + slideInVertically { it } with
+                                                            slideOutVertically { -it } + fadeOut()
                                                 }
                                             }
                                         ) {
@@ -176,12 +176,12 @@ class MainActivity : ComponentActivity() {
                                                     transitionSpec = {
                                                         when {
                                                             targetState > initialState -> {
-                                                                fadeIn() + slideInVertically({ it }) with
-                                                                        slideOutVertically({ -it }) + fadeOut()
+                                                                fadeIn() + slideInVertically { it } with
+                                                                        slideOutVertically { -it } + fadeOut()
                                                             }
                                                             targetState < initialState -> {
-                                                                fadeIn() + slideInVertically({ -it }) with
-                                                                        slideOutVertically({ it }) + fadeOut()
+                                                                fadeIn() + slideInVertically { -it } with
+                                                                        slideOutVertically { it } + fadeOut()
                                                             }
                                                             else -> fadeIn() with fadeOut()
                                                         }
@@ -298,8 +298,8 @@ class MainActivity : ComponentActivity() {
                                 actions = {
                                     AnimatedVisibility(
                                         visible = viewModel.state == 2,
-                                        enter = fadeIn() + slideInHorizontally({ it }),
-                                        exit = fadeOut() + slideOutHorizontally({ it })
+                                        enter = fadeIn() + slideInHorizontally { it },
+                                        exit = fadeOut() + slideOutHorizontally { it }
                                     ) {
                                         IconButton(onClick = { viewModel.reset() }) {
                                             Icon(
@@ -337,11 +337,12 @@ class MainActivity : ComponentActivity() {
                                         }
                                         AnimatedContent(
                                             targetState = viewModel.current,
-                                            modifier = Modifier.padding(30.dp),
+                                            modifier = Modifier.padding(30.dp).fillMaxWidth(),
                                             transitionSpec = {
-                                                (fadeIn() + slideInVertically({ it }) with
-                                                        slideOutVertically({ -it }) + fadeOut()).using(SizeTransform(clip = false))
-                                            }
+                                                (fadeIn() + slideInVertically { it } with
+                                                        slideOutVertically { -it } + fadeOut()).using(SizeTransform(clip = false))
+                                            },
+                                            contentAlignment = Alignment.Center
                                         ) {
                                             Text(text = if (viewModel.list.isEmpty()) "" else viewModel.list[it].string, style = MaterialTheme.typography.h3)
                                         }

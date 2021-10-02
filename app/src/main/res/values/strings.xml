@@ -12,4 +12,5 @@
     <string name="disabled">已禁用</string>
     <string name="chose_item">恭喜获得：</string>
     <string name="reset">重置</string>
+    <string name="no_item">上拉底部菜单添加项目</string>
 </resources>

@@ -11,6 +11,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
+import kotlin.math.roundToLong
 
 class ActivityViewModel : ViewModel() {
     @OptIn(ExperimentalMaterialApi::class)
@@ -43,15 +44,18 @@ class ActivityViewModel : ViewModel() {
     var list by mutableStateOf(listOf<Item>())
         private set
 
-    private var _offset by mutableStateOf(0f)
+    private var _offset by mutableStateOf(2f * 50)
 
     var offset
         get() = _offset
         set(value) {
-            if (value >= 0f && (value / 50).roundToInt() <= 20) {
+            if ((value / 50).roundToInt() in 2..20) {
                 _offset = value
             }
         }
+
+    val quantity
+        get() = (offset / 50).roundToInt()
 
     var state by mutableStateOf(0)
 
@@ -73,23 +77,23 @@ class ActivityViewModel : ViewModel() {
     @OptIn(DelicateCoroutinesApi::class)
     fun start() {
         state = 1
-        val time = (1000..1500).random()
-        val interval = (100..150).random()
+        val time = (list.size * (1000..1500).random()).toLong()
         val job = GlobalScope.launch {
-            if (current + 1 == list.size) current = 0 else current++
-            delay(interval.toLong())
+            while (true) {
+                if (current + 1 == list.size) current = 0 else current++
+                delay(150)
+            }
         }
         GlobalScope.launch {
-            delay(time.toLong())
+            delay(time)
             job.cancel()
+            current = list.indices.random()
             state = 2
         }
     }
 
     fun reset() {
-        visible = false
         listState = LazyListState()
-        list = listOf()
         state = 0
         current = 0
     }

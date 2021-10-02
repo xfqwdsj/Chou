@@ -42,7 +42,6 @@ import com.google.accompanist.insets.rememberInsetsPaddingValues
 import com.google.accompanist.insets.ui.TopAppBar
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import xyz.xfqlittlefan.chou.ui.theme.ChouTheme
-import kotlin.math.roundToInt
 
 class MainActivity : ComponentActivity() {
     private val viewModel by viewModels<ActivityViewModel>()
@@ -86,7 +85,8 @@ class MainActivity : ComponentActivity() {
                                     animationSpec = tween(durationMillis = 500)
                                 )
                                 Spacer(
-                                    modifier = Modifier.fillMaxWidth()
+                                    modifier = Modifier
+                                        .fillMaxWidth()
                                         .height((LocalWindowInsets.current.statusBars.top * viewModel.sheetFraction).toDp())
                                 )
                                 BoxWithConstraints(
@@ -98,7 +98,10 @@ class MainActivity : ComponentActivity() {
                                     )
                                     Spacer(
                                         modifier = Modifier
-                                            .padding(15.dp).width(width).height(5.dp).clip(CircleShape)
+                                            .padding(15.dp)
+                                            .width(width)
+                                            .height(5.dp)
+                                            .clip(CircleShape)
                                             .background(color = MaterialTheme.colors.onSurface.copy(alpha = draggableBarAlpha))
                                     )
                                 }
@@ -106,16 +109,20 @@ class MainActivity : ComponentActivity() {
                                 var dragging by remember { mutableStateOf(false) }
                                 val alpha by animateFloatAsState(targetValue = if (dragging) 0.15f else 0.1f)
                                 val enabled = !viewModel.visible && viewModel.sheetFraction == 1f
-                                val modifier = Modifier.padding(horizontal = 10.dp).fillMaxWidth()
+                                val modifier = Modifier
+                                    .padding(horizontal = 10.dp)
+                                    .fillMaxWidth()
                                     .clip(RoundedCornerShape(10.dp))
                                     .background(color = MaterialTheme.colors.onSurface.copy(alpha = alpha))
                                 Box(
-                                    modifier = if (enabled) modifier.draggable(
-                                        state = rememberDraggableState { viewModel.offset += it.toDp().value },
-                                        orientation = Orientation.Horizontal,
-                                        onDragStarted = { dragging = true },
-                                        onDragStopped = { dragging = false }
-                                    ).padding(10.dp) else modifier.padding(10.dp),
+                                    modifier = if (enabled) modifier
+                                        .draggable(
+                                            state = rememberDraggableState { viewModel.offset += it.toDp().value },
+                                            orientation = Orientation.Horizontal,
+                                            onDragStarted = { dragging = true },
+                                            onDragStopped = { dragging = false }
+                                        )
+                                        .padding(10.dp) else modifier.padding(10.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     AnimatedContent(
@@ -139,10 +146,12 @@ class MainActivity : ComponentActivity() {
                                             if (viewModel.visible) {
                                                 viewModel.clear()
                                             } else {
-                                                viewModel.add((viewModel.offset / 50).roundToInt())
+                                                viewModel.add(viewModel.quantity)
                                             }
                                         },
-                                        modifier = Modifier.padding(10.dp).fillMaxWidth(),
+                                        modifier = Modifier
+                                            .padding(10.dp)
+                                            .fillMaxWidth(),
                                         enabled = enabledIt,
                                         shape = RoundedCornerShape(10.dp)
                                     ) {
@@ -163,7 +172,7 @@ class MainActivity : ComponentActivity() {
                                                     text = stringResource(id = if (it) R.string.clear_item else R.string.add_item)
                                                 )
                                                 AnimatedContent(
-                                                    targetState = (viewModel.offset / 50).roundToInt(),
+                                                    targetState = viewModel.quantity,
                                                     transitionSpec = {
                                                         when {
                                                             targetState > initialState -> {
@@ -212,7 +221,9 @@ class MainActivity : ComponentActivity() {
                                                     elevation = 0.dp
                                                 ) {
                                                     Row(
-                                                        modifier = Modifier.fillMaxWidth().padding(20.dp),
+                                                        modifier = Modifier
+                                                            .fillMaxWidth()
+                                                            .padding(20.dp),
                                                         verticalAlignment = Alignment.CenterVertically
                                                     ) {
                                                         AnimatedContent(
@@ -264,7 +275,8 @@ class MainActivity : ComponentActivity() {
                                     }
                                     Spacer(
                                         modifier = Modifier
-                                            .fillMaxWidth().height(5.dp)
+                                            .fillMaxWidth()
+                                            .height(5.dp)
                                             .background(
                                                 brush = Brush.verticalGradient(
                                                     colors = listOf(
@@ -284,7 +296,11 @@ class MainActivity : ComponentActivity() {
                                 title = { Text(text = stringResource(id = R.string.app_name)) },
                                 contentPadding = rememberInsetsPaddingValues(insets = LocalWindowInsets.current.statusBars),
                                 actions = {
-                                    AnimatedVisibility(visible = viewModel.state == 3) {
+                                    AnimatedVisibility(
+                                        visible = viewModel.state == 2,
+                                        enter = fadeIn() + slideInHorizontally({ it }),
+                                        exit = fadeOut() + slideOutHorizontally({ it })
+                                    ) {
                                         IconButton(onClick = { viewModel.reset() }) {
                                             Icon(
                                                 imageVector = Icons.Filled.Refresh,
@@ -299,36 +315,51 @@ class MainActivity : ComponentActivity() {
                         sheetPeekHeight = peekHeight.value
                     ) {
                         Column(
-                            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .verticalScroll(rememberScrollState()),
                             verticalArrangement = Arrangement.Center,
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Spacer(modifier = Modifier.height(it.calculateTopPadding()))
-                            Row(modifier = Modifier.padding(50.dp).fillMaxWidth()) {
-                                AnimatedContent(
-                                    targetState = viewModel.state,
-                                    transitionSpec = { fadeIn() with fadeOut() }
-                                ) {
-                                    Text(text = stringResource(id = if (it == 3) R.string.chose_item else R.string.current_item))
-                                }
-                                AnimatedContent(
-                                    targetState = viewModel.current,
-                                    transitionSpec = {
-                                        fadeIn() + slideInVertically({ it }) with
-                                                slideOutVertically({ -it }) + fadeOut()
+                            AnimatedContent(
+                                targetState = viewModel.visible,
+                                transitionSpec = { fadeIn() with fadeOut() }
+                            ) { visible ->
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    if (visible) {
+                                        Row(modifier = Modifier.padding(50.dp)) {
+                                            AnimatedContent(
+                                                targetState = viewModel.state,
+                                                transitionSpec = { fadeIn() with fadeOut() }
+                                            ) {
+                                                Text(text = stringResource(id = if (it == 2) R.string.chose_item else R.string.current_item), style = MaterialTheme.typography.h6)
+                                            }
+                                            AnimatedContent(
+                                                targetState = viewModel.current,
+                                                transitionSpec = {
+                                                    fadeIn() + slideInVertically({ it }) with
+                                                            slideOutVertically({ -it }) + fadeOut()
+                                                }
+                                            ) {
+                                                Text(text = if (viewModel.list.isEmpty()) "" else viewModel.list[it].string, style = MaterialTheme.typography.h6)
+                                            }
+                                        }
+                                        AnimatedVisibility(visible = viewModel.state == 0) {
+                                            Button(
+                                                onClick = { viewModel.start() }
+                                            ) {
+                                                Text(text = stringResource(id = R.string.choose))
+                                            }
+                                        }
+                                    } else {
+                                        CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.disabled) {
+                                            Text(text = stringResource(id = R.string.no_item))
+                                        }
                                     }
-                                ) {
-                                    Text(text = if (viewModel.list.isEmpty()) "" else viewModel.list[it].string)
                                 }
                             }
-                            AnimatedVisibility(visible = viewModel.state == 0) {
-                                Button(
-                                    onClick = { viewModel.start() }
-                                ) {
-                                    Text(text = stringResource(id = R.string.choose))
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(it.calculateBottomPadding()))
+                            Spacer(modifier = Modifier.height(it.calculateBottomPadding() + 50.dp))
                         }
                     }
                 }

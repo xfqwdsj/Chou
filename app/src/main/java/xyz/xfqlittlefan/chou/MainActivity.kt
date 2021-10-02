@@ -34,6 +34,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import com.google.accompanist.insets.LocalWindowInsets
@@ -343,10 +344,13 @@ class MainActivity : ComponentActivity() {
                                             transitionSpec = {
                                                 (fadeIn() + slideInVertically(initialOffsetY = { it }) with
                                                         slideOutVertically(targetOffsetY = { -it }) + fadeOut()).using(SizeTransform(clip = false))
-                                            },
-                                            contentAlignment = Alignment.Center
+                                            }
                                         ) {
-                                            Text(text = if (viewModel.list.isEmpty()) "" else viewModel.list[it].string, style = MaterialTheme.typography.h3)
+                                            Text(
+                                                text = if (viewModel.list.isEmpty()) "" else viewModel.list[it].string,
+                                                textAlign = TextAlign.Center,
+                                                style = MaterialTheme.typography.h3
+                                            )
                                         }
                                         AnimatedVisibility(visible = viewModel.state == 0) {
                                             Button(

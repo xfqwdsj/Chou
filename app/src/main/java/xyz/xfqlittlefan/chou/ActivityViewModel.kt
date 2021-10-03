@@ -58,7 +58,7 @@ class ActivityViewModel : ViewModel() {
 
     var state by mutableStateOf(0)
 
-    private var current by mutableStateOf(0)
+    var current by mutableStateOf(0)
 
     @OptIn(DelicateCoroutinesApi::class)
     fun add(quantity: Int) {

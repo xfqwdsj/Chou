@@ -34,6 +34,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.layout.relocationRequester
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -45,15 +46,13 @@ import com.google.accompanist.insets.imePadding
 import com.google.accompanist.insets.rememberInsetsPaddingValues
 import com.google.accompanist.insets.ui.TopAppBar
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import xyz.xfqlittlefan.chou.ui.theme.ChouTheme
 
 class MainActivity : ComponentActivity() {
     private val viewModel by viewModels<ActivityViewModel>()
 
-    @OptIn(ExperimentalMaterialApi::class, ExperimentalAnimationApi::class)
+    @OptIn(ExperimentalMaterialApi::class, ExperimentalAnimationApi::class, androidx.compose.ui.ExperimentalComposeUiApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -211,14 +210,9 @@ class MainActivity : ComponentActivity() {
                                     ) {
                                         LaunchedEffect(constraints.maxHeight) {
                                             viewModel.focused?.let {
-                                                    viewModel.apply {
-                                                        listState.scrollToItem(it)
-                                                        list[it].apply {
-                                                            requester.requestFocus()
-                                                            editing = true
-                                                        }
-                                                    }
-                                                }
+                                                viewModel.list[it].focusRequester.requestFocus()
+                                                viewModel.listState.animateScrollToItem(it)
+                                            }
                                         }
 
                                         LazyColumn(
@@ -233,14 +227,14 @@ class MainActivity : ComponentActivity() {
                                             itemsIndexed(viewModel.list) { index, item ->
                                                 LaunchedEffect(item.editing) {
                                                     if (!item.editing) {
-                                                        item.requester.freeFocus()
+                                                        item.focusRequester.freeFocus()
                                                         if (viewModel.focused == index) viewModel.focused = null
                                                     }
                                                 }
 
                                                 DisposableEffect(Unit) {
                                                     onDispose {
-                                                            item.editing = false
+                                                        item.editing = false
                                                     }
                                                 }
 
@@ -268,8 +262,8 @@ class MainActivity : ComponentActivity() {
                                                                 TextField(
                                                                     value = item.editingString,
                                                                     onValueChange = { item.editingString = it },
-                                                                    modifier = Modifier.fillMaxWidth().focusRequester(item.requester).onFocusChanged {
-                                                                                                                      if (it.isFocused) viewModel.focused = index
+                                                                    modifier = Modifier.fillMaxWidth().focusRequester(item.focusRequester).onFocusChanged {
+                                                                        viewModel.focused = if (it.isFocused) index else null
                                                                     },
                                                                     enabled = editing,
                                                                     shape = RectangleShape

@@ -5,14 +5,12 @@ import androidx.compose.material.*
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.focus.FocusRequester
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
-import kotlin.math.roundToLong
 
 class ActivityViewModel : ViewModel() {
     @OptIn(ExperimentalMaterialApi::class)
@@ -60,7 +58,7 @@ class ActivityViewModel : ViewModel() {
 
     var state by mutableStateOf(0)
 
-    var current by mutableStateOf(0)
+    private var current by mutableStateOf(0)
 
     @OptIn(DelicateCoroutinesApi::class)
     fun add(quantity: Int) {

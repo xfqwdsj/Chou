@@ -15,7 +15,7 @@ import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -30,6 +30,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalDensity
@@ -39,9 +40,11 @@ import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import com.google.accompanist.insets.LocalWindowInsets
 import com.google.accompanist.insets.ProvideWindowInsets
+import com.google.accompanist.insets.imePadding
 import com.google.accompanist.insets.rememberInsetsPaddingValues
 import com.google.accompanist.insets.ui.TopAppBar
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import kotlinx.coroutines.launch
 import xyz.xfqlittlefan.chou.ui.theme.ChouTheme
 
 class MainActivity : ComponentActivity() {
@@ -58,8 +61,8 @@ class MainActivity : ComponentActivity() {
                 controller.setNavigationBarColor(color = androidx.compose.ui.graphics.Color.Transparent)
             }
 
-            ProvideWindowInsets {
-                ChouTheme {
+            ChouTheme {
+                ProvideWindowInsets(windowInsetsAnimationsEnabled = true) {
                     val cardRadius = animateDpAsState(
                         targetValue = (if (viewModel.sheetFraction == 1f) 0 else 20).dp
                     )
@@ -196,7 +199,7 @@ class MainActivity : ComponentActivity() {
                                     }
                                 }
                                 Spacer(modifier = Modifier.height(10.dp))
-                                Box(modifier = Modifier.fillMaxSize()) {
+                                Box(modifier = Modifier.fillMaxSize().imePadding()) {
                                     androidx.compose.animation.AnimatedVisibility(
                                         visible = viewModel.visible,
                                         modifier = Modifier.fillMaxSize(),
@@ -212,7 +215,7 @@ class MainActivity : ComponentActivity() {
                                                 additionalTop = 5.dp
                                             )
                                         ) {
-                                            items(viewModel.list) { item ->
+                                            itemsIndexed(viewModel.list) { index, item ->
                                                 Card(
                                                     modifier = Modifier
                                                         .padding(horizontal = 10.dp, vertical = 5.dp)
@@ -234,10 +237,14 @@ class MainActivity : ComponentActivity() {
                                                             contentAlignment = Alignment.Center
                                                         ) { editing ->
                                                             Box(modifier = Modifier.clip(RoundedCornerShape(10.dp))) {
+                                                                val coroutineScope = rememberCoroutineScope()
+
                                                                 TextField(
                                                                     value = item.editingString,
                                                                     onValueChange = { item.editingString = it },
-                                                                    modifier = Modifier.fillMaxWidth(),
+                                                                    modifier = Modifier.fillMaxWidth().onFocusChanged {
+                                                                        if (it.isFocused) coroutineScope.launch { viewModel.listState.animateScrollToItem(index = index) }
+                                                                    },
                                                                     enabled = editing,
                                                                     shape = RectangleShape
                                                                 )

@@ -5,6 +5,7 @@ import androidx.compose.material.*
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.focus.FocusRequester
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
@@ -60,6 +61,8 @@ class ActivityViewModel : ViewModel() {
 
     var current by mutableStateOf(0)
 
+    var focused: Int? by mutableStateOf(null)
+
     @OptIn(DelicateCoroutinesApi::class)
     fun add(quantity: Int) {
         GlobalScope.launch {
@@ -98,6 +101,7 @@ class ActivityViewModel : ViewModel() {
     }
 
     class Item {
+        val requester = FocusRequester()
         var string by mutableStateOf("")
         var editingString by mutableStateOf("")
         var editing by mutableStateOf(true)

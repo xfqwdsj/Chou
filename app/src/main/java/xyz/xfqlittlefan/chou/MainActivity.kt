@@ -363,6 +363,7 @@ class MainActivity : ComponentActivity() {
                             onDismissRequest = onDismiss,
                             onConfirm = {
                                 viewModel.list[viewModel.editing!!].value = value
+                                viewModel.editing = null
                             },
                             onDismiss = onDismiss
                         ) {

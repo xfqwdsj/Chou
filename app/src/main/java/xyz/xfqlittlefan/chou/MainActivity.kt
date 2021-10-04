@@ -45,7 +45,7 @@ import xyz.xfqlittlefan.chou.ui.theme.ChouTheme
 class MainActivity : ComponentActivity() {
     private val viewModel by viewModels<ActivityViewModel>()
 
-    @OptIn(ExperimentalMaterialApi::class, ExperimentalAnimationApi::class, androidx.compose.ui.ExperimentalComposeUiApi::class)
+    @OptIn(ExperimentalMaterialApi::class, ExperimentalAnimationApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -235,7 +235,7 @@ class MainActivity : ComponentActivity() {
                                                             targetState = item.value,
                                                             transitionSpec = { fadeIn() with fadeOut() }
                                                         ) {
-                                                            Text(text = it)
+                                                            Text(text = it, modifier = Modifier.weight(1f))
                                                         }
                                                         Spacer(modifier = Modifier.width(20.dp))
                                                         AnimatedContent(

@@ -201,19 +201,13 @@ class MainActivity : ComponentActivity() {
                                     }
                                 }
                                 Spacer(modifier = Modifier.height(10.dp))
-                                BoxWithConstraints(modifier = Modifier.fillMaxSize().imePadding()) {
+                                
                                     androidx.compose.animation.AnimatedVisibility(
                                         visible = viewModel.visible,
                                         modifier = Modifier.fillMaxSize(),
                                         enter = fadeIn(),
                                         exit = fadeOut()
                                     ) {
-                                        LaunchedEffect(constraints.maxHeight) {
-                                            viewModel.focused?.let {
-                                                viewModel.list[it].relocationRequester.bringIntoView()
-                                            }
-                                        }
-
                                         LazyColumn(
                                             modifier = Modifier.fillMaxSize(),
                                             state = viewModel.listState,
@@ -301,6 +295,15 @@ class MainActivity : ComponentActivity() {
                                                     }
                                                 }
                                             }
+                                            item {
+                                                BoxWithConstraints(modifier = Modifier.fillMaxSize().navigationBarsWithImePadding()) {
+                                                    LaunchedEffect(constraints.maxHeight) {
+                                                        viewModel.focused?.let {
+                                                            viewModel.listState.animateScrollToItem(it)
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                     Spacer(
@@ -316,7 +319,6 @@ class MainActivity : ComponentActivity() {
                                                 )
                                             )
                                     )
-                                }
                             }
                         },
                         modifier = Modifier.fillMaxSize(),

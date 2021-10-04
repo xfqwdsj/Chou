@@ -22,19 +22,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.layout.relocationRequester
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -42,11 +36,10 @@ import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import com.google.accompanist.insets.LocalWindowInsets
 import com.google.accompanist.insets.ProvideWindowInsets
-import com.google.accompanist.insets.navigationBarsWithImePadding
 import com.google.accompanist.insets.rememberInsetsPaddingValues
 import com.google.accompanist.insets.ui.TopAppBar
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import kotlinx.coroutines.launch
+import xyz.xfqlittlefan.chou.ui.composable.Dialog
 import xyz.xfqlittlefan.chou.ui.theme.ChouTheme
 
 class MainActivity : ComponentActivity() {
@@ -201,7 +194,7 @@ class MainActivity : ComponentActivity() {
                                     }
                                 }
                                 Spacer(modifier = Modifier.height(10.dp))
-                                
+                                Box(modifier = Modifier.fillMaxSize()) {
                                     androidx.compose.animation.AnimatedVisibility(
                                         visible = viewModel.visible,
                                         modifier = Modifier.fillMaxSize(),
@@ -218,19 +211,9 @@ class MainActivity : ComponentActivity() {
                                             )
                                         ) {
                                             itemsIndexed(viewModel.list) { index, item ->
-                                                LaunchedEffect(item.editing) {
-                                                    item.focusRequester.apply {
-                                                        if (item.editing) {
-                                                            requestFocus()
-                                                        } else {
-                                                            freeFocus()
-                                                        }
-                                                    }
-                                                }
-
                                                 DisposableEffect(Unit) {
                                                     onDispose {
-                                                        item.editing = false
+                                                        if (viewModel.editing == index) viewModel.editing = null
                                                     }
                                                 }
 
@@ -249,57 +232,22 @@ class MainActivity : ComponentActivity() {
                                                         verticalAlignment = Alignment.CenterVertically
                                                     ) {
                                                         AnimatedContent(
-                                                            targetState = item.editing,
-                                                            modifier = Modifier.weight(1f),
-                                                            transitionSpec = { fadeIn() with fadeOut() },
-                                                            contentAlignment = Alignment.Center
-                                                        ) { editing ->
-                                                            Box(modifier = Modifier.clip(RoundedCornerShape(10.dp))) {
-                                                                TextField(
-                                                                    value = item.editingString,
-                                                                    onValueChange = { item.editingString = it },
-                                                                    modifier = Modifier.fillMaxWidth().relocationRequester(item.relocationRequester).focusRequester(item.focusRequester).onFocusChanged {
-                                                                        viewModel.focused = if (it.isFocused) index else null
-                                                                    },
-                                                                    enabled = editing,
-                                                                    shape = RectangleShape
-                                                                )
-                                                            }
+                                                            targetState = item.value,
+                                                            transitionSpec = { fadeIn() with fadeOut() }
+                                                        ) {
+                                                            Text(text = it)
                                                         }
-                                                        Spacer(modifier = Modifier.width(15.dp))
-                                                        AnimatedVisibility(
-                                                            visible = !item.editing,
-                                                            enter = fadeIn() + expandHorizontally(expandFrom = Alignment.Start),
-                                                            exit = shrinkHorizontally(shrinkTowards = Alignment.Start) + fadeOut()
+                                                        Spacer(modifier = Modifier.width(20.dp))
+                                                        AnimatedContent(
+                                                            targetState = viewModel.editing == null,
+                                                            transitionSpec = { fadeIn() with fadeOut() }
                                                         ) {
                                                             Row {
                                                                 IconButton(
-                                                                    onClick = { item.editing = true }
+                                                                    onClick = { viewModel.editing = index },
+                                                                    enabled = it
                                                                 ) { Icon(imageVector = Icons.Filled.Edit, contentDescription = stringResource(id = R.string.edit_item)) }
                                                             }
-                                                        }
-                                                        AnimatedVisibility(
-                                                            visible = item.editing,
-                                                            enter = fadeIn() + expandHorizontally(expandFrom = Alignment.End),
-                                                            exit = shrinkHorizontally(shrinkTowards = Alignment.End) + fadeOut()
-                                                        ) {
-                                                            Row {
-                                                                IconButton(
-                                                                    onClick = { item.editing = false; item.editingString = item.string }
-                                                                ) { Icon(imageVector = Icons.Filled.Close, contentDescription = stringResource(id = R.string.cancel)) }
-                                                                IconButton(
-                                                                    onClick = { item.editing = false; item.string = item.editingString }
-                                                                ) { Icon(imageVector = Icons.Filled.Done, contentDescription = stringResource(id = R.string.ok)) }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                            item {
-                                                BoxWithConstraints(modifier = Modifier.fillMaxSize().navigationBarsWithImePadding()) {
-                                                    LaunchedEffect(constraints.maxHeight) {
-                                                        viewModel.focused?.let {
-                                                            viewModel.listState.animateScrollToItem(it)
                                                         }
                                                     }
                                                 }
@@ -319,6 +267,7 @@ class MainActivity : ComponentActivity() {
                                                 )
                                             )
                                     )
+                                }
                             }
                         },
                         modifier = Modifier.fillMaxSize(),
@@ -378,7 +327,7 @@ class MainActivity : ComponentActivity() {
                                             }
                                         ) {
                                             Text(
-                                                text = if (viewModel.list.isEmpty()) "" else viewModel.list[it].string,
+                                                text = if (viewModel.list.isEmpty()) "" else viewModel.list[it].value,
                                                 textAlign = TextAlign.Center,
                                                 style = MaterialTheme.typography.h3
                                             )
@@ -398,6 +347,28 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                             Spacer(modifier = Modifier.height(it.calculateBottomPadding() + 50.dp))
+                        }
+                    }
+
+                    if (viewModel.editing != null) {
+                        var value by remember { mutableStateOf(viewModel.list[viewModel.editing!!].value) }
+
+                        val onDismiss = {
+                            viewModel.editing = null
+                        }
+
+                        Dialog(
+                            title = stringResource(id = R.string.edit_item),
+                            onDismissRequest = onDismiss,
+                            onConfirm = {
+                                viewModel.list[viewModel.editing!!].value = value
+                            },
+                            onDismiss = onDismiss
+                        ) {
+                            TextField(
+                                value = value,
+                                onValueChange = { value = it }
+                            )
                         }
                     }
                 }

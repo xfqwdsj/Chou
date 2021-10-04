@@ -63,7 +63,7 @@ class ActivityViewModel : ViewModel() {
 
     var current by mutableStateOf(0)
 
-    var focused: Int? by mutableStateOf(null)
+    var editing: Int? by mutableStateOf(null)
 
     @OptIn(DelicateCoroutinesApi::class)
     fun add(quantity: Int) {
@@ -103,11 +103,6 @@ class ActivityViewModel : ViewModel() {
     }
 
     class Item {
-        @OptIn(ExperimentalComposeUiApi::class)
-        val relocationRequester = RelocationRequester()
-        val focusRequester = FocusRequester()
-        var string by mutableStateOf("")
-        var editingString by mutableStateOf("")
-        var editing by mutableStateOf(true)
+        var value by mutableStateOf("")
     }
 }

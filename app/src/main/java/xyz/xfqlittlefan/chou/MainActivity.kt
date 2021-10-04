@@ -233,9 +233,10 @@ class MainActivity : ComponentActivity() {
                                                     ) {
                                                         AnimatedContent(
                                                             targetState = item.value,
+                                                            modifier = Modifier.weight(1f),
                                                             transitionSpec = { fadeIn() with fadeOut() }
                                                         ) {
-                                                            Text(text = it, modifier = Modifier.weight(1f))
+                                                            Text(text = it)
                                                         }
                                                         Spacer(modifier = Modifier.width(20.dp))
                                                         AnimatedContent(

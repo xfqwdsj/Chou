@@ -210,8 +210,7 @@ class MainActivity : ComponentActivity() {
                                     ) {
                                         LaunchedEffect(constraints.maxHeight) {
                                             viewModel.focused?.let {
-                                                viewModel.list[it].focusRequester.requestFocus()
-                                                viewModel.listState.animateScrollToItem(it)
+                                                viewModel.list[it].relocationRequester.bringIntoView()
                                             }
                                         }
 
@@ -226,9 +225,12 @@ class MainActivity : ComponentActivity() {
                                         ) {
                                             itemsIndexed(viewModel.list) { index, item ->
                                                 LaunchedEffect(item.editing) {
-                                                    if (!item.editing) {
-                                                        item.focusRequester.freeFocus()
-                                                        if (viewModel.focused == index) viewModel.focused = null
+                                                    item.focusRequester.apply {
+                                                        if (item.editing) {
+                                                            requestFocus()
+                                                        } else {
+                                                            freeFocus()
+                                                        }
                                                     }
                                                 }
 

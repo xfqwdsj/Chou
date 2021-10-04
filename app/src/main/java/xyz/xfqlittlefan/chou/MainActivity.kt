@@ -264,7 +264,7 @@ class MainActivity : ComponentActivity() {
                                                                 TextField(
                                                                     value = item.editingString,
                                                                     onValueChange = { item.editingString = it },
-                                                                    modifier = Modifier.fillMaxWidth().focusRequester(item.focusRequester).onFocusChanged {
+                                                                    modifier = Modifier.fillMaxWidth().relocationRequester(item.relocationRequester).focusRequester(item.focusRequester).onFocusChanged {
                                                                         viewModel.focused = if (it.isFocused) index else null
                                                                     },
                                                                     enabled = editing,

@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import kotlin.math.max
 
 @Composable
@@ -22,7 +23,10 @@ fun Dialog(
     onDismissRequest: () -> Unit,
     content: @Composable () -> Unit
 ) {
-    Dialog(onDismissRequest = onDismissRequest) {
+    Dialog(
+        onDismissRequest = onDismissRequest,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
         Surface(shape = RoundedCornerShape(10.dp)) {
             Column {
                 CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.high) {

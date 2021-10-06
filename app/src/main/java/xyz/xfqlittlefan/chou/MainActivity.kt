@@ -112,15 +112,15 @@ class MainActivity : ComponentActivity() {
                                         .fillMaxWidth()
                                         .clip(RoundedCornerShape(10.dp))
                                         .background(color = MaterialTheme.colors.onSurface.copy(alpha = alpha))
-                                        .apply {
+                                        .let { modifier ->
                                             if (enabled) {
-                                                draggable(
+                                                modifier.draggable(
                                                     state = rememberDraggableState { viewModel.offset += it.toDp().value },
                                                     orientation = Orientation.Horizontal,
                                                     onDragStarted = { dragging = true },
                                                     onDragStopped = { dragging = false }
                                                 )
-                                            }
+                                            } else modifier
                                         }
                                         .padding(10.dp),
                                     contentAlignment = Alignment.Center

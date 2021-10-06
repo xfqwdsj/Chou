@@ -29,7 +29,7 @@ fun Dialog(
         onDismissRequest = onDismissRequest,
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
-        Surface(shape = RoundedCornerShape(10.dp)) {
+        Surface(modifier = Modifier.wrapContentSize(), shape = RoundedCornerShape(10.dp)) {
             Column {
                 CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.high) {
                     Text(

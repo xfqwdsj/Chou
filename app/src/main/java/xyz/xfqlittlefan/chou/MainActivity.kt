@@ -28,6 +28,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
@@ -352,9 +354,11 @@ class MainActivity : ComponentActivity() {
                     }
 
                     if (viewModel.editing != null) {
+                        val requester = FocusRequester()
                         var value by remember { mutableStateOf(viewModel.list[viewModel.editing!!].value) }
 
                         val onDismiss = {
+                            requester.freeFocus()
                             viewModel.editing = null
                         }
 
@@ -369,7 +373,8 @@ class MainActivity : ComponentActivity() {
                         ) {
                             TextField(
                                 value = value,
-                                onValueChange = { value = it }
+                                onValueChange = { value = it },
+                                modifier = Modifier.focusRequester(requester)
                             )
                         }
                     }

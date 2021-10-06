@@ -8,8 +8,8 @@
     <string name="cancel">取消</string>
     <string name="ok">确认</string>
     <string name="drag">左右拖动调整数量</string>
-    <string name="count">" 个"</string>
-    <string name="disabled">已禁用</string>
+    <string name="suffix">" 个"</string>
+    <string name="disabled">左右拖动调整数量已禁用</string>
     <string name="chose_item">恭喜获得</string>
     <string name="reset">重置</string>
     <string name="no_item">上拉底部菜单添加项目</string>

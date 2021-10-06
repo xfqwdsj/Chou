@@ -36,9 +36,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
-import com.google.accompanist.insets.LocalWindowInsets
-import com.google.accompanist.insets.ProvideWindowInsets
-import com.google.accompanist.insets.rememberInsetsPaddingValues
+import com.google.accompanist.insets.*
 import com.google.accompanist.insets.ui.TopAppBar
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import xyz.xfqlittlefan.chou.ui.composable.Dialog
@@ -61,7 +59,6 @@ class MainActivity : ComponentActivity() {
             ChouTheme {
                 ProvideWindowInsets(windowInsetsAnimationsEnabled = true) {
                     with(LocalDensity.current) {
-                        BoxWithConstraints {
                             val cardRadius = animateDpAsState(
                                 targetValue = (if (viewModel.sheetFraction == 1f) 0 else 20).dp
                             )
@@ -353,6 +350,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
 
+                        BoxWithConstraints(modifier = Modifier.statusBarsPadding().navigationBarsWithImePadding()) {
                             if (viewModel.editing != null) {
                                 var value by remember { mutableStateOf(viewModel.list[viewModel.editing!!].value) }
 
@@ -362,8 +360,8 @@ class MainActivity : ComponentActivity() {
 
                                 Dialog(
                                     modifier = Modifier
-                                        .width(constraints.maxWidth.toDp() - 20.dp)
-                                        .heightIn(min = 0.dp, max = constraints.maxHeight.toDp() - 20.dp),
+                                        .width(constraints.maxWidth.toDp() - 40.dp)
+                                        .heightIn(min = 0.dp, max = constraints.maxHeight.toDp() - 40.dp),
                                     title = stringResource(id = R.string.edit_item),
                                     onDismissRequest = onDismiss,
                                     onConfirm = {

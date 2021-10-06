@@ -20,6 +20,7 @@ import kotlin.math.max
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun Dialog(
+    modifier: Modifier = Modifier,
     title: String,
     buttons: (@Composable () -> Unit)? = null,
     onDismissRequest: () -> Unit,
@@ -29,7 +30,7 @@ fun Dialog(
         onDismissRequest = onDismissRequest,
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
-        Surface(modifier = Modifier.wrapContentSize(), shape = RoundedCornerShape(10.dp)) {
+        Surface(modifier = modifier, shape = RoundedCornerShape(10.dp)) {
             Column {
                 CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.high) {
                     Text(
@@ -57,6 +58,7 @@ fun Dialog(
 
 @Composable
 fun Dialog(
+    modifier: Modifier = Modifier,
     title: String,
     onDismissRequest: () -> Unit = { },
     onConfirm: (() -> Unit)? = null,
@@ -64,6 +66,7 @@ fun Dialog(
     content: @Composable () -> Unit
 ) {
     Dialog(
+        modifier = modifier,
         title = title,
         buttons = if (onConfirm != null || onDismiss != null) {
             {

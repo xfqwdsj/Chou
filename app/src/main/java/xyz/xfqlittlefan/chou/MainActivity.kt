@@ -107,21 +107,22 @@ class MainActivity : ComponentActivity() {
                                 val alpha by animateFloatAsState(targetValue = if (dragging) 0.15f else 0.1f)
                                 val enabled = !viewModel.visible && viewModel.sheetFraction == 1f
                                 Box(
-                                    modifier = Modifier.apply {
-                                        padding(horizontal = 10.dp)
-                                        fillMaxWidth()
-                                        clip(RoundedCornerShape(10.dp))
-                                        background(color = MaterialTheme.colors.onSurface.copy(alpha = alpha))
-                                        if (enabled) {
-                                            draggable(
-                                                state = rememberDraggableState { viewModel.offset += it.toDp().value },
-                                                orientation = Orientation.Horizontal,
-                                                onDragStarted = { dragging = true },
-                                                onDragStopped = { dragging = false }
-                                            )
+                                    modifier = Modifier
+                                        .padding(horizontal = 10.dp)
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(10.dp))
+                                        .background(color = MaterialTheme.colors.onSurface.copy(alpha = alpha))
+                                        .apply {
+                                            if (enabled) {
+                                                draggable(
+                                                    state = rememberDraggableState { viewModel.offset += it.toDp().value },
+                                                    orientation = Orientation.Horizontal,
+                                                    onDragStarted = { dragging = true },
+                                                    onDragStopped = { dragging = false }
+                                                )
+                                            }
                                         }
-                                        padding(10.dp)
-                                    },
+                                        .padding(10.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     AnimatedContent(
@@ -193,9 +194,11 @@ class MainActivity : ComponentActivity() {
                                     }
                                 }
                                 Spacer(modifier = Modifier.height(10.dp))
-                                Box(modifier = Modifier
-                                    .fillMaxWidth()
-                                    .weight(1f)) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .weight(1f)
+                                ) {
                                     androidx.compose.animation.AnimatedVisibility(
                                         visible = viewModel.visible,
                                         modifier = Modifier.fillMaxSize(),

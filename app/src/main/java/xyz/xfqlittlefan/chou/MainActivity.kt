@@ -335,7 +335,7 @@ class MainActivity : ComponentActivity() {
                                                 }
                                             ) {
                                                 Text(
-                                                    text = if (viewModel.list.isEmpty()) "" else viewModel.list[it].value + "",
+                                                    text = if (viewModel.list.isEmpty()) "" else viewModel.list[it].value,
                                                     textAlign = TextAlign.Center,
                                                     style = MaterialTheme.typography.h3
                                                 )

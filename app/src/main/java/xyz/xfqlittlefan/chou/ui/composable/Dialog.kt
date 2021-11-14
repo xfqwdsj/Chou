@@ -27,8 +27,8 @@ fun Dialog(
     content: @Composable () -> Unit
 ) {
     Dialog(
-        onDismissRequest = onDismissRequest,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
+        onDismissRequest = onDismissRequest/* ,
+        properties = DialogProperties(usePlatformDefaultWidth = false) */
     ) {
         Surface(modifier = modifier, shape = RoundedCornerShape(10.dp)) {
             Column {

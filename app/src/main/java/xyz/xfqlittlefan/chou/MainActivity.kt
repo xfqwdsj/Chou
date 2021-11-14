@@ -371,9 +371,9 @@ class MainActivity : ComponentActivity() {
                                 }
 
                                 Dialog(
-                                    modifier = Modifier
+                                    /* modifier = Modifier
                                         .width(constraints.maxWidth.toDp() - 40.dp)
-                                        .heightIn(min = 0.dp, max = constraints.maxHeight.toDp() - 40.dp),
+                                        .heightIn(min = 0.dp, max = constraints.maxHeight.toDp() - 40.dp), */
                                     title = stringResource(id = R.string.edit_item),
                                     onDismissRequest = onDismiss,
                                     onConfirm = {

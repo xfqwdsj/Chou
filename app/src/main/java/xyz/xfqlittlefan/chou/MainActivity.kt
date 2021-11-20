@@ -304,7 +304,7 @@ class MainActivity : ComponentActivity() {
                             ) {
                                 Spacer(modifier = Modifier.height(it.calculateTopPadding() + 50.dp))
                                 AnimatedContent(
-                                    targetState = viewModel.visible,
+                                    targetState = viewModel.list.isNotEmpty(),
                                     transitionSpec = { fadeIn() with fadeOut() }
                                 ) { visible ->
                                     Column(horizontalAlignment = Alignment.CenterHorizontally) {

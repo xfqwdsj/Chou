@@ -35,8 +35,6 @@ class ActivityViewModel : ViewModel() {
     val dragging: Boolean
         get() = sheetState.progress.fraction < 1f
 
-    var visible by mutableStateOf(false)
-
     var listState = LazyListState()
 
     var list by mutableStateOf(listOf<Item>())

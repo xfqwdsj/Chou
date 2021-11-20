@@ -32,6 +32,8 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
@@ -109,7 +111,11 @@ class MainActivity : ComponentActivity() {
                                 Spacer(modifier = Modifier.height(5.dp))
                                 AnimatedVisibility(visible = viewModel.editing != null) {
                                     val requester = FocusRequester()
-                                    var value by remember { mutableStateOf(viewModel.list[viewModel.editing!!].value) }
+                                    val initValue = viewModel.list[viewModel.editing!!].value
+                                    var value by remember { mutableStateOf(TextFieldValue(
+                                        text = initValue,
+                                        selection = TextRange(index = initValue.length)
+                                    )) }
 
                                     SideEffect {
                                         requester.requestFocus()
@@ -117,21 +123,20 @@ class MainActivity : ComponentActivity() {
 
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Spacer(modifier = Modifier.width(10.dp))
-                                        TextField(
-                                            value = value,
-                                            onValueChange = { value = it },
-                                            modifier = Modifier
-                                                .weight(1f)
-                                                .focusRequester(requester),
-                                            shape = RoundedCornerShape(size = 10.dp)
-                                        )
+                                        Box(modifier = Modifier.weight(1f).clip(shape = RoundedCornerShape(size = 10.dp))) {
+                                            TextField(
+                                                value = value,
+                                                onValueChange = { value = it },
+                                                modifier = Modifier.focusRequester(requester)
+                                            )
+                                        }
                                         Spacer(modifier = Modifier.width(10.dp))
                                         IconButton(onClick = { viewModel.editing = null }) {
                                             Icon(imageVector = Icons.Filled.Close, contentDescription = stringResource(id = android.R.string.cancel))
                                         }
                                         Spacer(modifier = Modifier.width(10.dp))
                                         IconButton(onClick = {
-                                            viewModel.list[viewModel.editing!!].value = value
+                                            viewModel.list[viewModel.editing!!].value = value.text
                                             viewModel.editing = null
                                         }) {
                                             Icon(imageVector = Icons.Filled.Done, contentDescription = stringResource(id = android.R.string.ok))
@@ -153,7 +158,7 @@ class MainActivity : ComponentActivity() {
                                             }
                                         },
                                         modifier = Modifier
-                                            .padding(10.dp)
+                                            .padding(horizontal = 10.dp)
                                             .fillMaxWidth(),
                                         enabled = enabledIt,
                                         shape = RoundedCornerShape(size = 10.dp)

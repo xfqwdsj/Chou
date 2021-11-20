@@ -10,7 +10,6 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlin.math.roundToInt
 
 class ActivityViewModel : ViewModel() {
     @OptIn(ExperimentalMaterialApi::class)
@@ -42,19 +41,6 @@ class ActivityViewModel : ViewModel() {
 
     var list by mutableStateOf(listOf<Item>())
         private set
-
-    private var _offset by mutableStateOf(2f * 50)
-
-    var offset
-        get() = _offset
-        set(value) {
-            if ((value / 50).roundToInt() in 2..20) {
-                _offset = value
-            }
-        }
-
-    val quantity
-        get() = (offset / 50).roundToInt()
 
     var state by mutableStateOf(0)
 

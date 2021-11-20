@@ -88,5 +88,6 @@ class ActivityViewModel : ViewModel() {
 
     class Item {
         var value by mutableStateOf("")
+        var visible by mutableStateOf(false)
     }
 }

@@ -106,7 +106,7 @@ class MainActivity : ComponentActivity() {
                                     )
                                 }
                                 Spacer(modifier = Modifier.height(5.dp))
-                                AnimatedVisibility(visible = viewModel.sheetFraction == 1f && viewModel.editing != null) {
+                                AnimatedVisibility(visible = viewModel.editing != null) {
                                     val requester = FocusRequester()
                                     val initValue = viewModel.editing?.let { viewModel.list[it].value } ?: ""
                                     var value by remember {
@@ -134,18 +134,19 @@ class MainActivity : ComponentActivity() {
                                                 onValueChange = { value = it },
                                                 modifier = Modifier
                                                     .fillMaxWidth()
-                                                    .focusRequester(requester)
+                                                    .focusRequester(requester),
+                                                enabled = viewModel.sheetFraction == 1f
                                             )
                                         }
                                         Spacer(modifier = Modifier.width(10.dp))
-                                        IconButton(onClick = { viewModel.editing = null }) {
+                                        IconButton(onClick = { viewModel.editing = null }, enabled = viewModel.sheetFraction == 1f) {
                                             Icon(imageVector = Icons.Filled.Close, contentDescription = stringResource(id = android.R.string.cancel))
                                         }
                                         Spacer(modifier = Modifier.width(10.dp))
                                         IconButton(onClick = {
                                             viewModel.list[viewModel.editing!!].value = value.text
                                             viewModel.editing = null
-                                        }) {
+                                        }, enabled = viewModel.sheetFraction == 1f) {
                                             Icon(imageVector = Icons.Filled.Done, contentDescription = stringResource(id = android.R.string.ok))
                                         }
                                         Spacer(modifier = Modifier.width(10.dp))
@@ -187,58 +188,71 @@ class MainActivity : ComponentActivity() {
                                         )
                                     ) {
                                         itemsIndexed(items = viewModel.list, key = { _, item -> item.toString() }) { index, item ->
-                                            Card(
-                                                modifier = Modifier
-                                                    .padding(horizontal = 10.dp, vertical = 5.dp)
-                                                    .fillMaxWidth()
-                                                    .animateItemPlacement(),
-                                                shape = RoundedCornerShape(10.dp),
-                                                border = BorderStroke(width = 1.dp, color = MaterialTheme.colors.onSurface.copy(alpha = 0.2f)),
-                                                elevation = 0.dp
+                                            SideEffect { item.visible = true }
+
+                                            androidx.compose.animation.AnimatedVisibility(
+                                                visible = item.visible,
+                                                enter = fadeIn(),
+                                                exit = fadeOut()
                                             ) {
-                                                Row(
+                                                Card(
                                                     modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .padding(20.dp),
-                                                    verticalAlignment = Alignment.CenterVertically
+                                                        .padding(horizontal = 10.dp, vertical = 5.dp)
+                                                        .fillMaxWidth(),
+                                                    shape = RoundedCornerShape(10.dp),
+                                                    border = BorderStroke(width = 1.dp, color = MaterialTheme.colors.onSurface.copy(alpha = 0.2f)),
+                                                    elevation = 0.dp
                                                 ) {
-                                                    AnimatedContent(
-                                                        targetState = item.value,
-                                                        modifier = Modifier.weight(1f),
-                                                        transitionSpec = { fadeIn() with fadeOut() }
+                                                    Row(
+                                                        modifier = Modifier
+                                                            .fillMaxWidth()
+                                                            .padding(20.dp),
+                                                        verticalAlignment = Alignment.CenterVertically
                                                     ) {
-                                                        Text(text = it)
-                                                    }
-                                                    Spacer(modifier = Modifier.width(20.dp))
-                                                    AnimatedContent(
-                                                        targetState = viewModel.sheetFraction == 1f && viewModel.editing == null,
-                                                        transitionSpec = { fadeIn() with fadeOut() }
-                                                    ) {
-                                                        CompositionLocalProvider(LocalContentAlpha provides if (it) ContentAlpha.high else ContentAlpha.disabled) {
-                                                            Row {
-                                                                IconButton(
-                                                                    onClick = { viewModel.add(index + 1) },
-                                                                    enabled = it
-                                                                ) {
-                                                                    Icon(imageVector = Icons.Filled.Add, contentDescription = stringResource(id = R.string.add_item))
-                                                                }
-                                                                Spacer(modifier = Modifier.width(10.dp))
-                                                                IconButton(
-                                                                    onClick = { viewModel.remove(index) },
-                                                                    enabled = it
-                                                                ) {
-                                                                    Icon(imageVector = Icons.Filled.Delete, contentDescription = stringResource(id = R.string.remove_item))
-                                                                }
-                                                                Spacer(modifier = Modifier.width(10.dp))
-                                                                IconButton(
-                                                                    onClick = { viewModel.editing = index },
-                                                                    enabled = it
-                                                                ) {
-                                                                    Icon(imageVector = Icons.Filled.Edit, contentDescription = stringResource(id = R.string.edit_item))
+                                                        AnimatedContent(
+                                                            targetState = item.value,
+                                                            modifier = Modifier.weight(1f),
+                                                            transitionSpec = { fadeIn() with fadeOut() }
+                                                        ) {
+                                                            Text(text = it)
+                                                        }
+                                                        Spacer(modifier = Modifier.width(20.dp))
+                                                        AnimatedContent(
+                                                            targetState = viewModel.sheetFraction == 1f && viewModel.editing == null,
+                                                            transitionSpec = { fadeIn() with fadeOut() }
+                                                        ) {
+                                                            CompositionLocalProvider(LocalContentAlpha provides if (it) ContentAlpha.high else ContentAlpha.disabled) {
+                                                                Row {
+                                                                    IconButton(
+                                                                        onClick = { viewModel.add(index + 1) },
+                                                                        enabled = it
+                                                                    ) {
+                                                                        Icon(imageVector = Icons.Filled.Add, contentDescription = stringResource(id = R.string.add_item))
+                                                                    }
+                                                                    Spacer(modifier = Modifier.width(10.dp))
+                                                                    IconButton(
+                                                                        onClick = { item.visible = false },
+                                                                        enabled = it
+                                                                    ) {
+                                                                        Icon(imageVector = Icons.Filled.Delete, contentDescription = stringResource(id = R.string.remove_item))
+                                                                    }
+                                                                    Spacer(modifier = Modifier.width(10.dp))
+                                                                    IconButton(
+                                                                        onClick = { viewModel.editing = index },
+                                                                        enabled = it
+                                                                    ) {
+                                                                        Icon(imageVector = Icons.Filled.Edit, contentDescription = stringResource(id = R.string.edit_item))
+                                                                    }
                                                                 }
                                                             }
                                                         }
                                                     }
+                                                }
+                                            }
+
+                                            DisposableEffect(Unit) {
+                                                onDispose {
+                                                    viewModel.remove(index)
                                                 }
                                             }
                                         }

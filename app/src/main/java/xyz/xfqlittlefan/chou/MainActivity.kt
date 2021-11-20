@@ -22,12 +22,16 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
@@ -50,6 +54,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val controller = rememberSystemUiController()
+
             SideEffect {
                 controller.setNavigationBarColor(color = androidx.compose.ui.graphics.Color.Transparent)
             }
@@ -69,6 +74,13 @@ class MainActivity : ComponentActivity() {
                         BottomSheetScaffold(
                             sheetContent = {
                                 val isLight = MaterialTheme.colors.isLight
+                                val requester = FocusRequester()
+                                val elevationOverlay = LocalElevationOverlay.current
+                                val draggableBarAlpha by animateFloatAsState(
+                                    targetValue = if (viewModel.dragging) 0.15f else 0.05f,
+                                    animationSpec = tween(durationMillis = 500)
+                                )
+
                                 SideEffect {
                                     controller.setStatusBarColor(
                                         color = androidx.compose.ui.graphics.Color.Transparent,
@@ -76,11 +88,6 @@ class MainActivity : ComponentActivity() {
                                     )
                                 }
 
-                                val elevationOverlay = LocalElevationOverlay.current
-                                val draggableBarAlpha by animateFloatAsState(
-                                    targetValue = if (viewModel.dragging) 0.15f else 0.05f,
-                                    animationSpec = tween(durationMillis = 500)
-                                )
                                 Spacer(
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -102,40 +109,35 @@ class MainActivity : ComponentActivity() {
                                             .background(color = MaterialTheme.colors.onSurface.copy(alpha = draggableBarAlpha))
                                     )
                                 }
-                                Spacer(modifier = Modifier.height(10.dp))
-                                var dragging by remember { mutableStateOf(false) }
-                                val alpha by animateFloatAsState(targetValue = if (dragging) 0.15f else 0.1f)
-                                val enabled = !viewModel.visible && viewModel.sheetFraction == 1f
-                                Box(
-                                    modifier = Modifier
-                                        .padding(horizontal = 10.dp)
-                                        .fillMaxWidth()
-                                        .clip(RoundedCornerShape(10.dp))
-                                        .background(color = MaterialTheme.colors.onSurface.copy(alpha = alpha))
-                                        .let { modifier ->
-                                            if (enabled) {
-                                                modifier.draggable(
-                                                    state = rememberDraggableState { viewModel.offset += it.toDp().value },
-                                                    orientation = Orientation.Horizontal,
-                                                    onDragStarted = { dragging = true },
-                                                    onDragStopped = { dragging = false }
-                                                )
-                                            } else modifier
+                                Spacer(modifier = Modifier.height(5.dp))
+                                AnimatedVisibility(visible = viewModel.editing != null) {
+                                    var value by remember { mutableStateOf(viewModel.list[viewModel.editing!!].value) }
+
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Spacer(modifier = Modifier.width(10.dp))
+                                        TextField(
+                                            value = value,
+                                            onValueChange = { value = it },
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .focusRequester(requester),
+                                            shape = RoundedCornerShape(size = 10.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(10.dp))
+                                        IconButton(onClick = { viewModel.editing = null }) {
+                                            Icon(imageVector = Icons.Filled.Close, contentDescription = stringResource(id = android.R.string.cancel))
                                         }
-                                        .padding(10.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    AnimatedContent(
-                                        targetState = enabled,
-                                        transitionSpec = { fadeIn() with fadeOut() }
-                                    ) {
-                                        CompositionLocalProvider(LocalContentAlpha provides if (it) ContentAlpha.medium else ContentAlpha.disabled) {
-                                            Text(
-                                                text = stringResource(id = if (it) R.string.drag else R.string.disabled)
-                                            )
+                                        Spacer(modifier = Modifier.width(10.dp))
+                                        IconButton(onClick = {
+                                            viewModel.list[viewModel.editing!!].value = value
+                                            viewModel.editing = null
+                                        }) {
+                                            Icon(imageVector = Icons.Filled.Done, contentDescription = stringResource(id = android.R.string.ok))
                                         }
+                                        Spacer(modifier = Modifier.width(10.dp))
                                     }
                                 }
+                                Spacer(modifier = Modifier.height(5.dp))
                                 AnimatedContent(
                                     targetState = viewModel.sheetFraction == 1f,
                                     transitionSpec = { fadeIn() with fadeOut() }
@@ -152,7 +154,7 @@ class MainActivity : ComponentActivity() {
                                             .padding(10.dp)
                                             .fillMaxWidth(),
                                         enabled = enabledIt,
-                                        shape = RoundedCornerShape(10.dp)
+                                        shape = RoundedCornerShape(size = 10.dp)
                                     ) {
                                         AnimatedContent(
                                             targetState = viewModel.visible,
@@ -222,7 +224,10 @@ class MainActivity : ComponentActivity() {
                                                 }
 
                                                 Card(
-                                                    onClick = { viewModel.editing = index },
+                                                    onClick = {
+                                                        viewModel.editing = index
+                                                        requester.requestFocus()
+                                                              },
                                                     modifier = Modifier
                                                         .padding(horizontal = 10.dp, vertical = 5.dp)
                                                         .fillMaxWidth(),
@@ -355,40 +360,6 @@ class MainActivity : ComponentActivity() {
                                     }
                                 }
                                 Spacer(modifier = Modifier.height(it.calculateBottomPadding() + 50.dp))
-                            }
-                        }
-
-                        BoxWithConstraints(
-                            modifier = Modifier
-                                .statusBarsPadding()
-                                .navigationBarsWithImePadding()
-                        ) {
-                            if (viewModel.editing != null) {
-                                var value by remember { mutableStateOf(viewModel.list[viewModel.editing!!].value) }
-
-                                val onDismiss = {
-                                    viewModel.editing = null
-                                }
-
-                                Dialog(
-                                    /* modifier = Modifier
-                                        .width(constraints.maxWidth.toDp() - 40.dp)
-                                        .heightIn(min = 0.dp, max = constraints.maxHeight.toDp() - 40.dp), */
-                                    title = stringResource(id = R.string.edit_item),
-                                    onDismissRequest = onDismiss,
-                                    onConfirm = {
-                                        viewModel.list[viewModel.editing!!].value = value
-                                        onDismiss()
-                                    },
-                                    onDismiss = onDismiss
-                                ) {
-                                    TextField(
-                                        value = value,
-                                        onValueChange = { value = it },
-                                        modifier = Modifier.fillMaxWidth(),
-                                        shape = RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp)
-                                    )
-                                }
                             }
                         }
                     }

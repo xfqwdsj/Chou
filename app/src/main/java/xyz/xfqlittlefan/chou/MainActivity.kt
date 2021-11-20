@@ -19,10 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,6 +27,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
@@ -47,7 +45,7 @@ import xyz.xfqlittlefan.chou.ui.theme.ChouTheme
 class MainActivity : ComponentActivity() {
     private val viewModel by viewModels<ActivityViewModel>()
 
-    @OptIn(ExperimentalMaterialApi::class, ExperimentalAnimationApi::class)
+    @OptIn(ExperimentalMaterialApi::class, ExperimentalAnimationApi::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -56,7 +54,7 @@ class MainActivity : ComponentActivity() {
             val controller = rememberSystemUiController()
 
             SideEffect {
-                controller.setNavigationBarColor(color = androidx.compose.ui.graphics.Color.Transparent)
+                controller.setNavigationBarColor(color = Color.Transparent)
             }
 
             ChouTheme {
@@ -74,7 +72,6 @@ class MainActivity : ComponentActivity() {
                         BottomSheetScaffold(
                             sheetContent = {
                                 val isLight = MaterialTheme.colors.isLight
-                                val elevationOverlay = LocalElevationOverlay.current
                                 val draggableBarAlpha by animateFloatAsState(
                                     targetValue = if (viewModel.dragging) 0.15f else 0.05f,
                                     animationSpec = tween(durationMillis = 500)
@@ -82,7 +79,7 @@ class MainActivity : ComponentActivity() {
 
                                 SideEffect {
                                     controller.setStatusBarColor(
-                                        color = androidx.compose.ui.graphics.Color.Transparent,
+                                        color = Color.Transparent,
                                         darkIcons = isLight && viewModel.sheetFraction >= 0.9f
                                     )
                                 }
@@ -109,13 +106,17 @@ class MainActivity : ComponentActivity() {
                                     )
                                 }
                                 Spacer(modifier = Modifier.height(5.dp))
-                                AnimatedVisibility(visible = viewModel.editing != null) {
+                                AnimatedVisibility(visible = viewModel.sheetFraction == 1f && viewModel.editing != null) {
                                     val requester = FocusRequester()
                                     val initValue = viewModel.editing?.let { viewModel.list[it].value } ?: ""
-                                    var value by remember { mutableStateOf(TextFieldValue(
-                                        text = initValue,
-                                        selection = TextRange(index = initValue.length)
-                                    )) }
+                                    var value by remember {
+                                        mutableStateOf(
+                                            TextFieldValue(
+                                                text = initValue,
+                                                selection = TextRange(index = initValue.length)
+                                            )
+                                        )
+                                    }
 
                                     SideEffect {
                                         requester.requestFocus()
@@ -123,11 +124,17 @@ class MainActivity : ComponentActivity() {
 
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Spacer(modifier = Modifier.width(10.dp))
-                                        Box(modifier = Modifier.weight(1f).clip(shape = RoundedCornerShape(size = 10.dp))) {
+                                        Box(
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .clip(shape = RoundedCornerShape(size = 10.dp))
+                                        ) {
                                             TextField(
                                                 value = value,
                                                 onValueChange = { value = it },
-                                                modifier = Modifier.focusRequester(requester)
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .focusRequester(requester)
                                             )
                                         }
                                         Spacer(modifier = Modifier.width(10.dp))
@@ -146,60 +153,22 @@ class MainActivity : ComponentActivity() {
                                 }
                                 Spacer(modifier = Modifier.height(5.dp))
                                 AnimatedContent(
-                                    targetState = viewModel.sheetFraction == 1f,
+                                    targetState = viewModel.sheetFraction == 1f && viewModel.editing == null,
                                     transitionSpec = { fadeIn() with fadeOut() }
-                                ) { enabledIt ->
+                                ) {
                                     TextButton(
                                         onClick = {
-                                            if (viewModel.visible) {
-                                                viewModel.clear()
-                                            } else {
-                                                viewModel.add(viewModel.quantity)
-                                            }
+                                            viewModel.add(0)
                                         },
                                         modifier = Modifier
                                             .padding(horizontal = 10.dp)
                                             .fillMaxWidth(),
-                                        enabled = enabledIt,
+                                        enabled = it,
                                         shape = RoundedCornerShape(size = 10.dp)
                                     ) {
-                                        AnimatedContent(
-                                            targetState = viewModel.visible,
-                                            transitionSpec = {
-                                                if (targetState) {
-                                                    fadeIn() + slideInVertically(initialOffsetY = { -it }) with
-                                                            slideOutVertically(targetOffsetY = { it }) + fadeOut()
-                                                } else {
-                                                    fadeIn() + slideInVertically(initialOffsetY = { it }) with
-                                                            slideOutVertically(targetOffsetY = { -it }) + fadeOut()
-                                                }
-                                            }
-                                        ) {
-                                            Row {
-                                                Text(
-                                                    text = stringResource(id = if (it) R.string.clear_item else R.string.add_item)
-                                                )
-                                                AnimatedContent(
-                                                    targetState = viewModel.quantity,
-                                                    transitionSpec = {
-                                                        when {
-                                                            targetState > initialState -> {
-                                                                fadeIn() + slideInVertically(initialOffsetY = { it }) with
-                                                                        slideOutVertically(targetOffsetY = { -it }) + fadeOut()
-                                                            }
-                                                            targetState < initialState -> {
-                                                                fadeIn() + slideInVertically(initialOffsetY = { -it }) with
-                                                                        slideOutVertically(targetOffsetY = { it }) + fadeOut()
-                                                            }
-                                                            else -> fadeIn() with fadeOut()
-                                                        }
-                                                    }
-                                                ) {
-                                                    Text(text = it.toString())
-                                                }
-                                                Text(text = stringResource(id = R.string.suffix))
-                                            }
-                                        }
+                                        Text(
+                                            text = stringResource(id = R.string.add_item)
+                                        )
                                     }
                                 }
                                 Spacer(modifier = Modifier.height(10.dp))
@@ -208,58 +177,65 @@ class MainActivity : ComponentActivity() {
                                         .fillMaxWidth()
                                         .weight(1f)
                                 ) {
-                                    androidx.compose.animation.AnimatedVisibility(
-                                        visible = viewModel.visible,
+                                    LazyColumn(
                                         modifier = Modifier.fillMaxSize(),
-                                        enter = fadeIn(),
-                                        exit = fadeOut()
+                                        state = viewModel.listState,
+                                        contentPadding = rememberInsetsPaddingValues(
+                                            insets = LocalWindowInsets.current.navigationBars,
+                                            applyBottom = true,
+                                            additionalTop = 5.dp
+                                        )
                                     ) {
-                                        LazyColumn(
-                                            modifier = Modifier.fillMaxSize(),
-                                            state = viewModel.listState,
-                                            contentPadding = rememberInsetsPaddingValues(
-                                                insets = LocalWindowInsets.current.navigationBars,
-                                                applyBottom = true,
-                                                additionalTop = 5.dp
-                                            )
-                                        ) {
-                                            itemsIndexed(viewModel.list) { index, item ->
-                                                DisposableEffect(Unit) {
-                                                    onDispose {
-                                                        if (viewModel.editing == index) viewModel.editing = null
-                                                    }
-                                                }
-
-                                                Card(
-                                                    onClick = { viewModel.editing = index },
+                                        itemsIndexed(items = viewModel.list, key = { index, _ -> index }) { index, item ->
+                                            Card(
+                                                modifier = Modifier
+                                                    .padding(horizontal = 10.dp, vertical = 5.dp)
+                                                    .fillMaxWidth()
+                                                    .animateItemPlacement(),
+                                                shape = RoundedCornerShape(10.dp),
+                                                border = BorderStroke(width = 1.dp, color = MaterialTheme.colors.onSurface.copy(alpha = 0.2f)),
+                                                elevation = 0.dp
+                                            ) {
+                                                Row(
                                                     modifier = Modifier
-                                                        .padding(horizontal = 10.dp, vertical = 5.dp)
-                                                        .fillMaxWidth(),
-                                                    shape = RoundedCornerShape(10.dp),
-                                                    border = BorderStroke(width = 1.dp, color = MaterialTheme.colors.onSurface.copy(alpha = 0.2f)),
-                                                    elevation = 0.dp,
-                                                    enabled = viewModel.editing == null
+                                                        .fillMaxWidth()
+                                                        .padding(20.dp),
+                                                    verticalAlignment = Alignment.CenterVertically
                                                 ) {
-                                                    Row(
-                                                        modifier = Modifier
-                                                            .fillMaxWidth()
-                                                            .padding(20.dp),
-                                                        verticalAlignment = Alignment.CenterVertically
+                                                    AnimatedContent(
+                                                        targetState = item.value,
+                                                        modifier = Modifier.weight(1f),
+                                                        transitionSpec = { fadeIn() with fadeOut() }
                                                     ) {
-                                                        AnimatedContent(
-                                                            targetState = item.value,
-                                                            modifier = Modifier.weight(1f),
-                                                            transitionSpec = { fadeIn() with fadeOut() }
-                                                        ) {
-                                                            Text(text = it)
-                                                        }
-                                                        Spacer(modifier = Modifier.width(20.dp))
-                                                        AnimatedContent(
-                                                            targetState = viewModel.editing == null,
-                                                            transitionSpec = { fadeIn() with fadeOut() }
-                                                        ) {
-                                                            CompositionLocalProvider(LocalContentAlpha provides if (it) ContentAlpha.high else ContentAlpha.disabled) {
-                                                                Icon(imageVector = Icons.Filled.Edit, contentDescription = stringResource(id = R.string.edit_item))
+                                                        Text(text = it)
+                                                    }
+                                                    Spacer(modifier = Modifier.width(20.dp))
+                                                    AnimatedContent(
+                                                        targetState = viewModel.sheetFraction == 1f && viewModel.editing == null,
+                                                        transitionSpec = { fadeIn() with fadeOut() }
+                                                    ) {
+                                                        CompositionLocalProvider(LocalContentAlpha provides if (it) ContentAlpha.high else ContentAlpha.disabled) {
+                                                            Row {
+                                                                IconButton(
+                                                                    onClick = { viewModel.add(index + 1) },
+                                                                    enabled = it
+                                                                ) {
+                                                                    Icon(imageVector = Icons.Filled.Add, contentDescription = stringResource(id = R.string.add_item))
+                                                                }
+                                                                Spacer(modifier = Modifier.width(10.dp))
+                                                                IconButton(
+                                                                    onClick = { viewModel.remove(index) },
+                                                                    enabled = it
+                                                                ) {
+                                                                    Icon(imageVector = Icons.Filled.Delete, contentDescription = stringResource(id = R.string.remove_item))
+                                                                }
+                                                                Spacer(modifier = Modifier.width(10.dp))
+                                                                IconButton(
+                                                                    onClick = { viewModel.editing = index },
+                                                                    enabled = it
+                                                                ) {
+                                                                    Icon(imageVector = Icons.Filled.Edit, contentDescription = stringResource(id = R.string.edit_item))
+                                                                }
                                                             }
                                                         }
                                                     }
@@ -267,19 +243,25 @@ class MainActivity : ComponentActivity() {
                                             }
                                         }
                                     }
-                                    Spacer(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .height(5.dp)
-                                            .background(
-                                                brush = Brush.verticalGradient(
-                                                    colors = listOf(
-                                                        elevationOverlay?.apply(MaterialTheme.colors.surface, LocalAbsoluteElevation.current + BottomSheetScaffoldDefaults.SheetElevation) ?: MaterialTheme.colors.surface,
-                                                        androidx.compose.ui.graphics.Color.Transparent
+                                    androidx.compose.animation.AnimatedVisibility(
+                                        visible = viewModel.listState.firstVisibleItemScrollOffset > 0,
+                                        enter = expandVertically(),
+                                        exit = shrinkVertically()
+                                    ) {
+                                        Spacer(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(2.dp)
+                                                .background(
+                                                    brush = Brush.verticalGradient(
+                                                        colors = listOf(
+                                                            Color.Black.copy(alpha = 0.2f),
+                                                            Color.Transparent
+                                                        )
                                                     )
                                                 )
-                                            )
-                                    )
+                                        )
+                                    }
                                 }
                                 Spacer(
                                     modifier = Modifier

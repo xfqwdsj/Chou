@@ -63,16 +63,17 @@ class ActivityViewModel : ViewModel() {
     var editing: Int? by mutableStateOf(null)
 
     @OptIn(DelicateCoroutinesApi::class)
-    fun add(quantity: Int) {
+    fun add(position: Int) {
         GlobalScope.launch {
-            listState = LazyListState()
-            list = List(quantity) { Item() }
-            visible = true
+            list = list.toMutableList().apply { add(position, Item()) }
         }
     }
 
-    fun clear() {
-        visible = false
+    @OptIn(DelicateCoroutinesApi::class)
+    fun remove(position: Int) {
+        GlobalScope.launch {
+            list = list.toMutableList().apply { removeAt(position) }
+        }
     }
 
     @OptIn(DelicateCoroutinesApi::class)

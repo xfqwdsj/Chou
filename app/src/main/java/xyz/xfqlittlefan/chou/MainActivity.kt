@@ -111,7 +111,7 @@ class MainActivity : ComponentActivity() {
                                 Spacer(modifier = Modifier.height(5.dp))
                                 AnimatedVisibility(visible = viewModel.editing != null) {
                                     val requester = FocusRequester()
-                                    val initValue = viewModel.list[viewModel.editing!!].value
+                                    val initValue = viewModel.editing?.let { viewModel.list[it].value } ?: ""
                                     var value by remember { mutableStateOf(TextFieldValue(
                                         text = initValue,
                                         selection = TextRange(index = initValue.length)

@@ -10,9 +10,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.draggable
-import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -38,10 +35,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
-import com.google.accompanist.insets.*
+import com.google.accompanist.insets.LocalWindowInsets
+import com.google.accompanist.insets.ProvideWindowInsets
+import com.google.accompanist.insets.rememberInsetsPaddingValues
 import com.google.accompanist.insets.ui.TopAppBar
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import xyz.xfqlittlefan.chou.ui.composable.Dialog
 import xyz.xfqlittlefan.chou.ui.theme.ChouTheme
 
 class MainActivity : ComponentActivity() {
@@ -74,7 +72,6 @@ class MainActivity : ComponentActivity() {
                         BottomSheetScaffold(
                             sheetContent = {
                                 val isLight = MaterialTheme.colors.isLight
-                                val requester = FocusRequester()
                                 val elevationOverlay = LocalElevationOverlay.current
                                 val draggableBarAlpha by animateFloatAsState(
                                     targetValue = if (viewModel.dragging) 0.15f else 0.05f,
@@ -111,7 +108,12 @@ class MainActivity : ComponentActivity() {
                                 }
                                 Spacer(modifier = Modifier.height(5.dp))
                                 AnimatedVisibility(visible = viewModel.editing != null) {
+                                    val requester = FocusRequester()
                                     var value by remember { mutableStateOf(viewModel.list[viewModel.editing!!].value) }
+
+                                    SideEffect {
+                                        requester.requestFocus()
+                                    }
 
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Spacer(modifier = Modifier.width(10.dp))
@@ -224,10 +226,7 @@ class MainActivity : ComponentActivity() {
                                                 }
 
                                                 Card(
-                                                    onClick = {
-                                                        viewModel.editing = index
-                                                        requester.requestFocus()
-                                                              },
+                                                    onClick = { viewModel.editing = index },
                                                     modifier = Modifier
                                                         .padding(horizontal = 10.dp, vertical = 5.dp)
                                                         .fillMaxWidth(),

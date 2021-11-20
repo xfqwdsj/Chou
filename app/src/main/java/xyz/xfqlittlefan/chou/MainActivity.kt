@@ -186,7 +186,7 @@ class MainActivity : ComponentActivity() {
                                             additionalTop = 5.dp
                                         )
                                     ) {
-                                        itemsIndexed(items = viewModel.list, key = { _, item -> item.value }) { index, item ->
+                                        itemsIndexed(items = viewModel.list, key = { _, item -> item }) { index, item ->
                                             Card(
                                                 modifier = Modifier
                                                     .padding(horizontal = 10.dp, vertical = 5.dp)

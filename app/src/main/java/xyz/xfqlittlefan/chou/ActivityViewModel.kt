@@ -1,7 +1,6 @@
 package xyz.xfqlittlefan.chou
 
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.material.*
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue

@@ -5,7 +5,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.animation.*
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -22,9 +21,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
@@ -37,8 +36,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.google.accompanist.insets.*
+import com.google.accompanist.insets.ProvideWindowInsets
+import com.google.accompanist.insets.navigationBarsPadding
+import com.google.accompanist.insets.statusBarsPadding
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import xyz.xfqlittlefan.chou.ui.componets.ChouAppBar
+import xyz.xfqlittlefan.chou.ui.componets.ChouNavigationBar
 import xyz.xfqlittlefan.chou.ui.theme.ChouTheme
 
 class MainActivity : ComponentActivity() {
@@ -57,7 +60,7 @@ class MainActivity : ComponentActivity() {
             }
 
             @Composable
-            fun Main(padding: PaddingValues) {
+            fun Main() {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -65,7 +68,7 @@ class MainActivity : ComponentActivity() {
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Spacer(modifier = Modifier.height(padding.calculateTopPadding() + 50.dp))
+                    Spacer(modifier = Modifier.height(50.dp))
                     AnimatedContent(
                         targetState = viewModel.list.isNotEmpty(),
                         transitionSpec = { fadeIn() with fadeOut() }
@@ -103,66 +106,23 @@ class MainActivity : ComponentActivity() {
                                     }
                                 }
                             } else {
-                                Text(text = stringResource(id = R.string.no_item))
+                                CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.38f)) {
+                                    Text(text = stringResource(id = R.string.no_item))
+                                }
                             }
                         }
                     }
-                    Spacer(modifier = Modifier.height(padding.calculateBottomPadding() + 50.dp))
+                    Spacer(modifier = Modifier.height(50.dp))
                 }
             }
 
             @Composable
-            fun Settings() {
+            fun Edit() {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .verticalScroll(rememberScrollState())
                 ) {
-                    AnimatedVisibility(visible = viewModel.editing != null) {
-                        val requester = FocusRequester()
-                        val initValue = viewModel.editing?.let { viewModel.list[it].value } ?: ""
-                        var value by remember {
-                            mutableStateOf(
-                                TextFieldValue(
-                                    text = initValue,
-                                    selection = TextRange(index = initValue.length)
-                                )
-                            )
-                        }
-
-                        SideEffect {
-                            requester.requestFocus()
-                        }
-
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .clip(shape = RoundedCornerShape(size = 10.dp))
-                            ) {
-                                TextField(
-                                    value = value,
-                                    onValueChange = { value = it },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .focusRequester(requester)
-                                )
-                            }
-                            Spacer(modifier = Modifier.width(10.dp))
-                            IconButton(onClick = { viewModel.editing = null }) {
-                                Icon(imageVector = Icons.Filled.Close, contentDescription = stringResource(id = android.R.string.cancel))
-                            }
-                            Spacer(modifier = Modifier.width(10.dp))
-                            IconButton(onClick = {
-                                viewModel.list[viewModel.editing!!].value = value.text
-                                viewModel.editing = null
-                            }) {
-                                Icon(imageVector = Icons.Filled.Done, contentDescription = stringResource(id = android.R.string.ok))
-                            }
-                            Spacer(modifier = Modifier.width(10.dp))
-                        }
-                    }
                     Spacer(modifier = Modifier.height(5.dp))
                     TextButton(
                         onClick = {
@@ -185,12 +145,7 @@ class MainActivity : ComponentActivity() {
                     ) {
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
-                            state = viewModel.listState,
-                            contentPadding = rememberInsetsPaddingValues(
-                                insets = LocalWindowInsets.current.navigationBars,
-                                applyBottom = true,
-                                additionalTop = 5.dp
-                            )
+                            state = viewModel.listState
                         ) {
                             itemsIndexed(items = viewModel.list, key = { _, item -> item.toString() }) { index, item ->
                                 Surface(
@@ -238,40 +193,75 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                         }
-                        androidx.compose.animation.AnimatedVisibility(
-                            visible = viewModel.listState.firstVisibleItemScrollOffset > 0,
-                            enter = expandVertically(),
-                            exit = shrinkVertically()
+                    }
+                }
+            }
+
+            @Composable
+            fun Editor() {
+                AnimatedVisibility(visible = viewModel.editing != null) {
+                    val requester = FocusRequester()
+                    val initValue = viewModel.editing?.let { viewModel.list[it].value } ?: ""
+                    var value by remember {
+                        mutableStateOf(
+                            TextFieldValue(
+                                text = initValue,
+                                selection = TextRange(index = initValue.length)
+                            )
+                        )
+                    }
+
+                    SideEffect {
+                        requester.requestFocus()
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(shape = RoundedCornerShape(size = 10.dp))
                         ) {
-                            Spacer(
+                            TextField(
+                                value = value,
+                                onValueChange = { value = it },
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(2.dp)
-                                    .background(
-                                        brush = Brush.verticalGradient(
-                                            colors = listOf(
-                                                Color.Black.copy(alpha = 0.2f),
-                                                Color.Transparent
-                                            )
-                                        )
-                                    )
+                                    .focusRequester(requester)
                             )
                         }
+                        Spacer(modifier = Modifier.width(10.dp))
+                        IconButton(onClick = { viewModel.editing = null }) {
+                            Icon(imageVector = Icons.Filled.Close, contentDescription = stringResource(id = android.R.string.cancel))
+                        }
+                        Spacer(modifier = Modifier.width(10.dp))
+                        IconButton(onClick = {
+                            viewModel.list[viewModel.editing!!].value = value.text
+                            viewModel.editing = null
+                        }) {
+                            Icon(imageVector = Icons.Filled.Done, contentDescription = stringResource(id = android.R.string.ok))
+                        }
+                        Spacer(modifier = Modifier.width(10.dp))
                     }
                 }
             }
 
             ChouTheme {
                 ProvideWindowInsets(windowInsetsAnimationsEnabled = true) {
+                    val scrollBehavior = remember { TopAppBarDefaults.pinnedScrollBehavior() }
                     val navController = rememberNavController()
-                    val items = listOf<Pair<Pair<Int, ImageVector>, @Composable (PaddingValues) -> Unit>>(
-                        Pair(Pair(R.string.chou_page, Icons.Default.Home)) @Composable { Main(it) },
-                        Pair(Pair(R.string.setting_page, Icons.Default.Settings)) @Composable { Settings() }
+                    val items = listOf<Pair<Pair<Int, ImageVector>, Pair<@Composable () -> Unit, @Composable () -> Unit>>>(
+                        Pair(Pair(R.string.chou_page, Icons.Default.Home), Pair(@Composable { Main() }, @Composable { })),
+                        Pair(Pair(R.string.edit_page, Icons.Default.Settings), Pair(@Composable { Edit() }, @Composable { Editor() }))
                     )
 
                     Scaffold(
+                        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
                         topBar = {
-                            SmallTopAppBar(
+                            ChouAppBar(
                                 title = { Text(stringResource(id = R.string.app_name)) },
                                 modifier = Modifier.statusBarsPadding(),
                                 actions = {
@@ -288,10 +278,17 @@ class MainActivity : ComponentActivity() {
                                         }
                                     }
                                 },
-                                scrollBehavior = remember { TopAppBarDefaults.pinnedScrollBehavior() })
+                                scrollBehavior = scrollBehavior
+                            ) {
+                                NavHost(navController = navController, startDestination = items[0].first.first.toString()) {
+                                    items.forEach { item ->
+                                        composable(item.first.first.toString()) { item.second.second() }
+                                    }
+                                }
+                            }
                         },
                         bottomBar = {
-                            NavigationBar(modifier = Modifier.navigationBarsPadding()) {
+                            ChouNavigationBar(modifier = Modifier.navigationBarsPadding()) {
                                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                                 val currentDestination = navBackStackEntry?.destination
                                 items.forEach { item ->
@@ -315,7 +312,7 @@ class MainActivity : ComponentActivity() {
                     ) { innerPadding ->
                         NavHost(navController = navController, startDestination = items[0].first.first.toString(), modifier = Modifier.padding(innerPadding)) {
                             items.forEach { item ->
-                                composable(item.first.first.toString()) { item.second(innerPadding) }
+                                composable(item.first.first.toString()) { item.second.first() }
                             }
                         }
                     }

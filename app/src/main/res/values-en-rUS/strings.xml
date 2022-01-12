@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="add_item">Add item</string>
+    <string name="edit_item">Edit item</string>
+    <string name="choose">Start</string>
+    <string name="current_item">Current item</string>
+    <string name="remove_item">Delete item</string>
+    <string name="chose_item">This item is selected</string>
+    <string name="reset">Reset</string>
+    <string name="chou_page">Home</string>
+    <string name="no_item">Switch to the tab \"Edit\" to add items</string>
+    <string name="edit_page">Edit</string>
+</resources>

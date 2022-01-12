@@ -5,7 +5,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.animation.*
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Refresh
@@ -42,12 +45,75 @@ class MainActivity : ComponentActivity() {
         setContent {
             val controller = rememberSystemUiController()
 
-            //SideEffect {
-            //    controller.setNavigationBarColor(color = Color.Transparent)
-            //}
+            SideEffect {
+                controller.setNavigationBarColor(color = Color.Transparent)
+            }
 
             val main: @Composable () -> Unit = {
-                Text(stringResource(R.string.app_name))
+                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                    Text("""a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                        |a
+                    """.trimMargin())
+                }
             }
 
             val setting: @Composable () -> Unit = {

@@ -12,29 +12,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class ActivityViewModel : ViewModel() {
-    @OptIn(ExperimentalMaterialApi::class)
-    val scaffoldState = BottomSheetScaffoldState(
-        DrawerState(DrawerValue.Closed),
-        BottomSheetState(BottomSheetValue.Collapsed),
-        SnackbarHostState()
-    )
-
-    @OptIn(ExperimentalMaterialApi::class)
-    private val sheetState
-        get() = scaffoldState.bottomSheetState
-
-    @OptIn(ExperimentalMaterialApi::class)
-    val sheetFraction
-        get() = when (sheetState.progress.to) {
-            BottomSheetValue.Expanded -> sheetState.progress.fraction
-            BottomSheetValue.Collapsed -> 1f - sheetState.progress.fraction
-            else -> 0f
-        }
-
-    @OptIn(ExperimentalMaterialApi::class)
-    val dragging: Boolean
-        get() = sheetState.progress.fraction < 1f
-
     var listState = LazyListState()
 
     var list by mutableStateOf(listOf<Item>())

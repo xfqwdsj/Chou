@@ -26,6 +26,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.insets.ProvideWindowInsets
+import com.google.accompanist.insets.navigationBarsPadding
+import com.google.accompanist.insets.statusBarsPadding
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import xyz.xfqlittlefan.chou.ui.theme.ChouTheme
 
@@ -35,7 +37,7 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //WindowCompat.setDecorFitsSystemWindows(window, false)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
 
         setContent {
             val controller = rememberSystemUiController()
@@ -65,6 +67,7 @@ class MainActivity : ComponentActivity() {
                             topBar = {
                                 SmallTopAppBar(
                                     title = { Text(stringResource(id = R.string.app_name)) },
+                                    modifier = Modifier.statusBarsPadding(),
                                     actions = {
                                         AnimatedVisibility(
                                             visible = viewModel.state == 2,
@@ -81,7 +84,7 @@ class MainActivity : ComponentActivity() {
                                     })
                             },
                             bottomBar = {
-                                NavigationBar {
+                                NavigationBar(modifier = Modifier.navigationBarsPadding()) {
                                     val navBackStackEntry by navController.currentBackStackEntryAsState()
                                     val currentDestination = navBackStackEntry?.destination
                                     items.forEach { item ->

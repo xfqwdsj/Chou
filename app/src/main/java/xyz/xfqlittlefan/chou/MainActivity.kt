@@ -5,47 +5,35 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.animation.*
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.*
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.SmallTopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
-import com.google.accompanist.insets.LocalWindowInsets
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.insets.ProvideWindowInsets
-import com.google.accompanist.insets.rememberInsetsPaddingValues
-import com.google.accompanist.insets.ui.TopAppBar
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import xyz.xfqlittlefan.chou.ui.theme.ChouTheme
 
 class MainActivity : ComponentActivity() {
     private val viewModel by viewModels<ActivityViewModel>()
 
-    @OptIn(ExperimentalMaterialApi::class, ExperimentalAnimationApi::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
+    @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -57,225 +45,27 @@ class MainActivity : ComponentActivity() {
                 controller.setNavigationBarColor(color = Color.Transparent)
             }
 
+            val main: @Composable () -> Unit = {
+                Text(stringResource(R.string.app_name))
+            }
+
+            val setting: @Composable () -> Unit = {
+
+            }
+
             ChouTheme {
                 ProvideWindowInsets(windowInsetsAnimationsEnabled = true) {
                     with(LocalDensity.current) {
-                        val cardRadius = animateDpAsState(
-                            targetValue = (if (viewModel.sheetFraction == 1f) 0 else 20).dp
-                        )
-                        val peekHeight = animateDpAsState(
-                            targetValue = if (viewModel.state == 0)
-                                LocalWindowInsets.current.navigationBars.bottom.toDp() + 100.dp
-                            else 0.dp
+                        val navController = rememberNavController()
+                        val items = listOf(
+                            Pair(Pair(R.string.chou_page, Icons.Default.Home), main),
+                            Pair(Pair(R.string.setting_page, Icons.Default.Settings), setting)
                         )
 
-                        BottomSheetScaffold(
-                            sheetContent = {
-                                val isLight = MaterialTheme.colors.isLight
-                                val draggableBarAlpha by animateFloatAsState(
-                                    targetValue = if (viewModel.dragging) 0.15f else 0.05f,
-                                    animationSpec = tween(durationMillis = 500)
-                                )
-
-                                SideEffect {
-                                    controller.setStatusBarColor(
-                                        color = Color.Transparent,
-                                        darkIcons = isLight && viewModel.sheetFraction >= 0.9f
-                                    )
-                                }
-
-                                Spacer(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height((LocalWindowInsets.current.statusBars.top * viewModel.sheetFraction).toDp())
-                                )
-                                BoxWithConstraints(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    val width by animateDpAsState(
-                                        targetValue = (constraints.maxWidth * if (viewModel.dragging) 0.25f else 0.15f).toDp()
-                                    )
-                                    Spacer(
-                                        modifier = Modifier
-                                            .padding(15.dp)
-                                            .width(width)
-                                            .height(5.dp)
-                                            .clip(CircleShape)
-                                            .background(color = MaterialTheme.colors.onSurface.copy(alpha = draggableBarAlpha))
-                                    )
-                                }
-                                Spacer(modifier = Modifier.height(5.dp))
-                                AnimatedVisibility(visible = viewModel.editing != null) {
-                                    val requester = FocusRequester()
-                                    val initValue = viewModel.editing?.let { viewModel.list[it].value } ?: ""
-                                    var value by remember {
-                                        mutableStateOf(
-                                            TextFieldValue(
-                                                text = initValue,
-                                                selection = TextRange(index = initValue.length)
-                                            )
-                                        )
-                                    }
-
-                                    SideEffect {
-                                        requester.requestFocus()
-                                    }
-
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Spacer(modifier = Modifier.width(10.dp))
-                                        Box(
-                                            modifier = Modifier
-                                                .weight(1f)
-                                                .clip(shape = RoundedCornerShape(size = 10.dp))
-                                        ) {
-                                            TextField(
-                                                value = value,
-                                                onValueChange = { value = it },
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .focusRequester(requester),
-                                                enabled = viewModel.sheetFraction == 1f
-                                            )
-                                        }
-                                        Spacer(modifier = Modifier.width(10.dp))
-                                        IconButton(onClick = { viewModel.editing = null }, enabled = viewModel.sheetFraction == 1f) {
-                                            Icon(imageVector = Icons.Filled.Close, contentDescription = stringResource(id = android.R.string.cancel))
-                                        }
-                                        Spacer(modifier = Modifier.width(10.dp))
-                                        IconButton(onClick = {
-                                            viewModel.list[viewModel.editing!!].value = value.text
-                                            viewModel.editing = null
-                                        }, enabled = viewModel.sheetFraction == 1f) {
-                                            Icon(imageVector = Icons.Filled.Done, contentDescription = stringResource(id = android.R.string.ok))
-                                        }
-                                        Spacer(modifier = Modifier.width(10.dp))
-                                    }
-                                }
-                                Spacer(modifier = Modifier.height(5.dp))
-                                AnimatedContent(
-                                    targetState = viewModel.sheetFraction == 1f && viewModel.editing == null,
-                                    transitionSpec = { fadeIn() with fadeOut() }
-                                ) {
-                                    TextButton(
-                                        onClick = {
-                                            viewModel.add(0)
-                                        },
-                                        modifier = Modifier
-                                            .padding(horizontal = 10.dp)
-                                            .fillMaxWidth(),
-                                        enabled = it,
-                                        shape = RoundedCornerShape(size = 10.dp)
-                                    ) {
-                                        Text(
-                                            text = stringResource(id = R.string.add_item)
-                                        )
-                                    }
-                                }
-                                Spacer(modifier = Modifier.height(10.dp))
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .weight(1f)
-                                ) {
-                                    LazyColumn(
-                                        modifier = Modifier.fillMaxSize(),
-                                        state = viewModel.listState,
-                                        contentPadding = rememberInsetsPaddingValues(
-                                            insets = LocalWindowInsets.current.navigationBars,
-                                            applyBottom = true,
-                                            additionalTop = 5.dp
-                                        )
-                                    ) {
-                                        itemsIndexed(items = viewModel.list, key = { _, item -> item.toString() }) { index, item ->
-                                            Card(
-                                                modifier = Modifier
-                                                    .padding(horizontal = 10.dp, vertical = 5.dp)
-                                                    .fillMaxWidth()
-                                                    .animateItemPlacement(),
-                                                shape = RoundedCornerShape(10.dp),
-                                                border = BorderStroke(width = 1.dp, color = MaterialTheme.colors.onSurface.copy(alpha = 0.2f)),
-                                                elevation = 0.dp
-                                            ) {
-                                                Row(
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .padding(20.dp),
-                                                    verticalAlignment = Alignment.CenterVertically
-                                                ) {
-                                                    AnimatedContent(
-                                                        targetState = item.value,
-                                                        modifier = Modifier.weight(1f),
-                                                        transitionSpec = { fadeIn() with fadeOut() }
-                                                    ) {
-                                                        Text(text = it)
-                                                    }
-                                                    Spacer(modifier = Modifier.width(20.dp))
-                                                    AnimatedContent(
-                                                        targetState = viewModel.sheetFraction == 1f && viewModel.editing == null,
-                                                        transitionSpec = { fadeIn() with fadeOut() }
-                                                    ) {
-                                                        CompositionLocalProvider(LocalContentAlpha provides if (it) ContentAlpha.high else ContentAlpha.disabled) {
-                                                            Row {
-                                                                IconButton(
-                                                                    onClick = { viewModel.add(index + 1) },
-                                                                    enabled = it
-                                                                ) {
-                                                                    Icon(imageVector = Icons.Filled.Add, contentDescription = stringResource(id = R.string.add_item))
-                                                                }
-                                                                Spacer(modifier = Modifier.width(10.dp))
-                                                                IconButton(
-                                                                    onClick = { viewModel.remove(index) },
-                                                                    enabled = it
-                                                                ) {
-                                                                    Icon(imageVector = Icons.Filled.Delete, contentDescription = stringResource(id = R.string.remove_item))
-                                                                }
-                                                                Spacer(modifier = Modifier.width(10.dp))
-                                                                IconButton(
-                                                                    onClick = { viewModel.editing = index },
-                                                                    enabled = it
-                                                                ) {
-                                                                    Icon(imageVector = Icons.Filled.Edit, contentDescription = stringResource(id = R.string.edit_item))
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                    androidx.compose.animation.AnimatedVisibility(
-                                        visible = viewModel.listState.firstVisibleItemScrollOffset > 0,
-                                        enter = expandVertically(),
-                                        exit = shrinkVertically()
-                                    ) {
-                                        Spacer(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(2.dp)
-                                                .background(
-                                                    brush = Brush.verticalGradient(
-                                                        colors = listOf(
-                                                            Color.Black.copy(alpha = 0.2f),
-                                                            Color.Transparent
-                                                        )
-                                                    )
-                                                )
-                                        )
-                                    }
-                                }
-                                Spacer(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height((LocalWindowInsets.current.statusBars.top - LocalWindowInsets.current.statusBars.top * viewModel.sheetFraction).toDp())
-                                )
-                            },
-                            modifier = Modifier.fillMaxSize(),
-                            scaffoldState = viewModel.scaffoldState,
+                        androidx.compose.material3.Scaffold(
                             topBar = {
-                                TopAppBar(
-                                    title = { Text(text = stringResource(id = R.string.app_name)) },
-                                    contentPadding = rememberInsetsPaddingValues(insets = LocalWindowInsets.current.statusBars),
+                                SmallTopAppBar(
+                                    title = { Text(stringResource(id = R.string.app_name)) },
                                     actions = {
                                         AnimatedVisibility(
                                             visible = viewModel.state == 2,
@@ -289,65 +79,32 @@ class MainActivity : ComponentActivity() {
                                                 )
                                             }
                                         }
-                                    }
-                                )
+                                    })
                             },
-                            sheetShape = RoundedCornerShape(topStart = cardRadius.value, topEnd = cardRadius.value),
-                            sheetPeekHeight = peekHeight.value
-                        ) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .verticalScroll(rememberScrollState()),
-                                verticalArrangement = Arrangement.Center,
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Spacer(modifier = Modifier.height(it.calculateTopPadding() + 50.dp))
-                                AnimatedContent(
-                                    targetState = viewModel.list.isNotEmpty(),
-                                    transitionSpec = { fadeIn() with fadeOut() }
-                                ) { visible ->
-                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        if (visible) {
-                                            AnimatedContent(
-                                                targetState = viewModel.state,
-                                                modifier = Modifier.padding(horizontal = 30.dp),
-                                                transitionSpec = { fadeIn() with fadeOut() }
-                                            ) {
-                                                Text(text = stringResource(id = if (it == 2) R.string.chose_item else R.string.current_item), style = MaterialTheme.typography.subtitle1)
-                                            }
-                                            AnimatedContent(
-                                                targetState = viewModel.current,
-                                                modifier = Modifier
-                                                    .padding(30.dp)
-                                                    .fillMaxWidth(),
-                                                transitionSpec = {
-                                                    (fadeIn() + slideInVertically(initialOffsetY = { it }) with
-                                                            slideOutVertically(targetOffsetY = { -it }) + fadeOut()).using(SizeTransform(clip = false))
-                                                }
-                                            ) {
-                                                Text(
-                                                    text = if (viewModel.list.isEmpty()) "" else viewModel.list[it].value,
-                                                    textAlign = TextAlign.Center,
-                                                    style = MaterialTheme.typography.h3
-                                                )
-                                            }
-                                            AnimatedVisibility(visible = viewModel.state == 0) {
-                                                Button(
-                                                    onClick = { viewModel.start() }
-                                                ) {
-                                                    Text(text = stringResource(id = R.string.choose))
+                            bottomBar = {
+                                NavigationBar {
+                                    val navBackStackEntry by navController.currentBackStackEntryAsState()
+                                    val currentDestination = navBackStackEntry?.destination
+                                    items.forEach { item ->
+                                        NavigationBarItem(
+                                            icon = { Icon(imageVector = item.first.second, contentDescription = stringResource(id = item.first.first)) },
+                                            label = { Text(stringResource(id = item.first.first)) },
+                                            selected = currentDestination?.hierarchy?.any { it.route == item.first.first.toString() } == true,
+                                            onClick = {
+                                                navController.navigate(item.first.first.toString()) {
+                                                    popUpTo(navController.graph.findStartDestination().id) {
+                                                        saveState = true
+                                                    }
+                                                    launchSingleTop = true
+                                                    restoreState = true
                                                 }
                                             }
-                                        } else {
-                                            CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.disabled) {
-                                                Text(text = stringResource(id = R.string.no_item))
-                                            }
-                                        }
+                                        )
                                     }
                                 }
-                                Spacer(modifier = Modifier.height(it.calculateBottomPadding() + 50.dp))
                             }
+                        ) {
+
                         }
                     }
                 }

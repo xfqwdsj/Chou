@@ -11,4 +11,6 @@
     <string name="chose_item">恭喜获得</string>
     <string name="reset">重置</string>
     <string name="no_item">上拉底部菜单添加项目</string>
+    <string name="chou_page">主页</string>
+    <string name="setting_page">设置</string>
 </resources>

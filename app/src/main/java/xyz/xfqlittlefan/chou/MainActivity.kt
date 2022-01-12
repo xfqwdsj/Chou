@@ -5,16 +5,11 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.animation.*
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.SmallTopAppBar
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
@@ -33,7 +28,7 @@ import xyz.xfqlittlefan.chou.ui.theme.ChouTheme
 class MainActivity : ComponentActivity() {
     private val viewModel by viewModels<ActivityViewModel>()
 
-    @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -62,7 +57,7 @@ class MainActivity : ComponentActivity() {
                             Pair(Pair(R.string.setting_page, Icons.Default.Settings), setting)
                         )
 
-                        androidx.compose.material3.Scaffold(
+                        Scaffold(
                             topBar = {
                                 SmallTopAppBar(
                                     title = { Text(stringResource(id = R.string.app_name)) },

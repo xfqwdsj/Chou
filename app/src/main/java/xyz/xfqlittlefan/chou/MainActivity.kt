@@ -123,20 +123,6 @@ class MainActivity : ComponentActivity() {
                         .fillMaxSize()
                         .verticalScroll(rememberScrollState())
                 ) {
-                    Spacer(modifier = Modifier.height(5.dp))
-                    TextButton(
-                        onClick = {
-                            viewModel.add(0)
-                        },
-                        modifier = Modifier
-                            .padding(horizontal = 10.dp)
-                            .fillMaxWidth(),
-                        shape = RoundedCornerShape(size = 10.dp)
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.add_item)
-                        )
-                    }
                     Spacer(modifier = Modifier.height(10.dp))
                     Box(
                         modifier = Modifier
@@ -199,52 +185,68 @@ class MainActivity : ComponentActivity() {
 
             @Composable
             fun Editor() {
-                AnimatedVisibility(visible = viewModel.editing != null) {
-                    val requester = FocusRequester()
-                    val initValue = viewModel.editing?.let { viewModel.list[it].value } ?: ""
-                    var value by remember {
-                        mutableStateOf(
-                            TextFieldValue(
-                                text = initValue,
-                                selection = TextRange(index = initValue.length)
+                Column {
+                    AnimatedVisibility(visible = viewModel.editing != null) {
+                        val requester = FocusRequester()
+                        val initValue = viewModel.editing?.let { viewModel.list[it].value } ?: ""
+                        var value by remember {
+                            mutableStateOf(
+                                TextFieldValue(
+                                    text = initValue,
+                                    selection = TextRange(index = initValue.length)
+                                )
                             )
-                        )
-                    }
+                        }
 
-                    SideEffect {
-                        requester.requestFocus()
-                    }
+                        SideEffect {
+                            requester.requestFocus()
+                        }
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .clip(shape = RoundedCornerShape(size = 10.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            TextField(
-                                value = value,
-                                onValueChange = { value = it },
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Box(
                                 modifier = Modifier
-                                    .fillMaxWidth()
-                                    .focusRequester(requester)
-                            )
+                                    .weight(1f)
+                                    .clip(shape = RoundedCornerShape(size = 10.dp))
+                            ) {
+                                TextField(
+                                    value = value,
+                                    onValueChange = { value = it },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .focusRequester(requester)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(10.dp))
+                            IconButton(onClick = { viewModel.editing = null }) {
+                                Icon(imageVector = Icons.Filled.Close, contentDescription = stringResource(id = android.R.string.cancel))
+                            }
+                            Spacer(modifier = Modifier.width(10.dp))
+                            IconButton(onClick = {
+                                viewModel.list[viewModel.editing!!].value = value.text
+                                viewModel.editing = null
+                            }) {
+                                Icon(imageVector = Icons.Filled.Done, contentDescription = stringResource(id = android.R.string.ok))
+                            }
+                            Spacer(modifier = Modifier.width(10.dp))
                         }
-                        Spacer(modifier = Modifier.width(10.dp))
-                        IconButton(onClick = { viewModel.editing = null }) {
-                            Icon(imageVector = Icons.Filled.Close, contentDescription = stringResource(id = android.R.string.cancel))
-                        }
-                        Spacer(modifier = Modifier.width(10.dp))
-                        IconButton(onClick = {
-                            viewModel.list[viewModel.editing!!].value = value.text
-                            viewModel.editing = null
-                        }) {
-                            Icon(imageVector = Icons.Filled.Done, contentDescription = stringResource(id = android.R.string.ok))
-                        }
-                        Spacer(modifier = Modifier.width(10.dp))
+                    }
+                    Spacer(modifier = Modifier.height(5.dp))
+                    TextButton(
+                        onClick = {
+                            viewModel.add(0)
+                        },
+                        modifier = Modifier
+                            .padding(horizontal = 10.dp)
+                            .fillMaxWidth(),
+                        shape = RoundedCornerShape(size = 10.dp)
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.add_item)
+                        )
                     }
                 }
             }

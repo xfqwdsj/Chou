@@ -1,6 +1,7 @@
 package xyz.xfqlittlefan.chou
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -25,6 +26,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
@@ -126,6 +128,7 @@ class MainActivity : ComponentActivity() {
                             scrollFraction = viewModel.scrollBehavior.scrollFraction
                         )
                         Column(modifier = Modifier.background(color = background)) {
+                            Spacer(modifier = Modifier.height(5.dp))
                             AnimatedVisibility(visible = viewModel.editing != null) {
                                 val requester = FocusRequester()
                                 val initValue = viewModel.editing?.let { viewModel.list[it].value } ?: ""
@@ -192,7 +195,9 @@ class MainActivity : ComponentActivity() {
                     }
                 ) { padding ->
                     LazyColumn(
-                        modifier = Modifier.padding(padding).fillMaxSize(),
+                        modifier = Modifier
+                            .padding(padding)
+                            .fillMaxSize(),
                         state = viewModel.listState
                     ) {
                         itemsIndexed(items = viewModel.list, key = { _, item -> item.toString() }) { index, item ->
@@ -276,6 +281,7 @@ class MainActivity : ComponentActivity() {
                             )
                         },
                         bottomBar = {
+                            val context = LocalContext.current
                             ChouNavigationBar(modifier = Modifier.navigationBarsPadding()) {
                                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                                 val currentDestination = navBackStackEntry?.destination
@@ -285,6 +291,7 @@ class MainActivity : ComponentActivity() {
                                         label = { Text(stringResource(id = item.first.first)) },
                                         selected = currentDestination?.hierarchy?.any { it.route == item.first.first.toString() } == true,
                                         onClick = {
+                                            val string = viewModel.scrollBehavior.scrollFraction.toString()
                                             navController.navigate(item.first.first.toString()) {
                                                 popUpTo(navController.graph.findStartDestination().id) {
                                                     saveState = true
@@ -292,6 +299,7 @@ class MainActivity : ComponentActivity() {
                                                 launchSingleTop = true
                                                 restoreState = true
                                             }
+                                            Toast.makeText(context, "$string\n${viewModel.scrollBehavior.scrollFraction}", Toast.LENGTH_LONG).show()    //TODO: 删除此行
                                         }
                                     )
                                 }

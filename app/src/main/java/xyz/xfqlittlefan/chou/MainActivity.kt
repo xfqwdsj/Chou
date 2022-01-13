@@ -81,7 +81,6 @@ class MainActivity : ComponentActivity() {
                                         label = { Text(stringResource(id = item.resId)) },
                                         selected = currentDestination?.hierarchy?.any { it.route == item.route } == true,
                                         onClick = {
-                                            viewModel.currentScrollState = item.state
                                             navController.navigate(item.route) {
                                                 popUpTo(navController.graph.findStartDestination().id) {
                                                     saveState = true
@@ -97,7 +96,13 @@ class MainActivity : ComponentActivity() {
                     ) { innerPadding ->
                         NavHost(navController = navController, startDestination = viewModel.screenList[0].route, modifier = Modifier.padding(innerPadding)) {
                             viewModel.screenList.forEach { item ->
-                                composable(item.route) { item.component() }
+                                composable(item.route) {
+                                    SideEffect {
+                                        viewModel.currentScrollState = item.state
+                                    }
+
+                                    item.component()
+                                }
                             }
                         }
                     }

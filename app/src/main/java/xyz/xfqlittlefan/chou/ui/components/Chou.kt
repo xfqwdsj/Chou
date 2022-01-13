@@ -20,16 +20,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.insets.LocalWindowInsets
+import com.google.accompanist.insets.cutoutPadding
 import com.google.accompanist.insets.rememberInsetsPaddingValues
 import com.google.accompanist.insets.systemBarsPadding
 import xyz.xfqlittlefan.chou.ActivityViewModel
 import xyz.xfqlittlefan.chou.R
+import xyz.xfqlittlefan.chou.ui.plus
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
@@ -46,7 +49,9 @@ fun Main(viewModel: ActivityViewModel, state: ScrollState) {
             targetState = viewModel.list.isNotEmpty(),
             transitionSpec = { fadeIn() with fadeOut() }
         ) { visible ->
-            Column(modifier = Modifier.systemBarsPadding(top = false, bottom = false), horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(modifier = Modifier
+                .systemBarsPadding(top = false, bottom = false)
+                .cutoutPadding(top = false, bottom = false), horizontalAlignment = Alignment.CenterHorizontally) {
                 if (visible) {
                     AnimatedContent(
                         targetState = viewModel.state,
@@ -101,6 +106,7 @@ fun Edit(viewModel: ActivityViewModel, state: LazyListState) {
                 modifier = Modifier
                     .background(color = background)
                     .systemBarsPadding(top = false, bottom = false)
+                    .cutoutPadding(top = false, bottom = false)
             ) {
                 AnimatedVisibility(visible = viewModel.isEditing != null) {
                     val requester = FocusRequester()
@@ -176,6 +182,7 @@ fun Edit(viewModel: ActivityViewModel, state: LazyListState) {
                 .fillMaxSize(),
             state = state,
             contentPadding = rememberInsetsPaddingValues(insets = LocalWindowInsets.current.systemBars, applyTop = false, applyBottom = false)
+                .plus(rememberInsetsPaddingValues(insets = LocalWindowInsets.current.displayCutout, applyTop = false, applyBottom = false), LocalLayoutDirection.current)
         ) {
             itemsIndexed(items = viewModel.list, key = { _, item -> item.toString() }) { index, item ->
                 Surface(

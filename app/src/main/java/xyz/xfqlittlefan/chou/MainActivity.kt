@@ -54,20 +54,18 @@ class MainActivity : ComponentActivity() {
                                 title = { Text(stringResource(id = R.string.app_name)) },
                                 modifier = Modifier
                                     .systemBarsPadding(bottom = false)
-                                    .cutoutPadding(bottom = false),
+                                    .cutoutPadding(top = false, bottom = false),
                                 actions = {
-                                    AnimatedContent(
-                                        targetState = viewModel.state == 2,
-                                        transitionSpec = {(fadeIn() + slideInHorizontally(initialOffsetX = { it })with
-                                                fadeOut() + slideOutHorizontally(targetOffsetX = { it })).using(SizeTransform(clip = false))}
+                                    AnimatedVisibility(
+                                        visible = viewModel.state == 2,
+                                        enter = fadeIn() + slideInHorizontally(initialOffsetX = { it }),
+                                        exit = fadeOut() + slideOutHorizontally(targetOffsetX = { it })
                                     ) {
-                                        if (it) {
-                                            IconButton(onClick = { viewModel.reset() }) {
-                                                Icon(
-                                                    imageVector = Icons.Filled.Refresh,
-                                                    contentDescription = stringResource(id = R.string.reset)
-                                                )
-                                            }
+                                        IconButton(onClick = { viewModel.reset() }) {
+                                            Icon(
+                                                imageVector = Icons.Filled.Refresh,
+                                                contentDescription = stringResource(id = R.string.reset)
+                                            )
                                         }
                                     }
                                 },
@@ -76,7 +74,7 @@ class MainActivity : ComponentActivity() {
                             )
                         },
                         bottomBar = {
-                            ChouNavigationBar(modifier = Modifier.systemBarsPadding(top = false)) {
+                            ChouNavigationBar(modifier = Modifier.systemBarsPadding(top = false).cutoutPadding(top = false, bottom = false)) {
                                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                                 val currentDestination = navBackStackEntry?.destination
                                 viewModel.screenList.forEach { item ->

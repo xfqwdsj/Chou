@@ -1,10 +1,8 @@
 package xyz.xfqlittlefan.chou.ui.components
 
-import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -21,14 +19,8 @@ fun ChouAppBar(
     actions: @Composable RowScope.() -> Unit = {},
     colors: TopAppBarColors = TopAppBarDefaults.smallTopAppBarColors(),
     scrollBehavior: TopAppBarScrollBehavior? = null,
-            scrollState: Any
+    fraction: Float
 ) {
-    val offset = when (scrollState) {
-        is ScrollState -> scrollState.value
-        is LazyListState -> scrollState.firstVisibleItemScrollOffset
-        else -> 0
-    }
-    val fraction = if (offset > 0) 1f else 0f
     val backgroundColor by colors.containerColor(
         scrollFraction = fraction
     )

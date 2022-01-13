@@ -22,9 +22,18 @@ import xyz.xfqlittlefan.chou.ui.components.Edit
 import xyz.xfqlittlefan.chou.ui.components.Main
 
 class ActivityViewModel : ViewModel() {
-    val homeScrollState = ScrollState(0)
-    var editingScrollState = LazyListState()
+    private val homeScrollState = ScrollState(0)
+    private var editingScrollState = LazyListState()
     var currentScrollState: Any = homeScrollState
+
+    private val offset
+        get() = when (currentScrollState) {
+            is ScrollState -> (currentScrollState as ScrollState).value
+            is LazyListState -> (currentScrollState as LazyListState).firstVisibleItemScrollOffset
+            else -> 0
+        }
+    val fraction
+        get() = if (offset > 0) 1f else 0f
 
     var list by mutableStateOf(listOf<Item>())
         private set
@@ -39,8 +48,8 @@ class ActivityViewModel : ViewModel() {
     var isEditing: Int? by mutableStateOf(null)
 
     val screenList = listOf(
-        Screen("home", R.string.chou_page, Icons.Default.Home, homeScrollState) { Main(this) },
-        Screen("editing", R.string.editing_page, Icons.Default.Settings, editingScrollState) { Edit(this) }
+        Screen("home", R.string.chou_page, Icons.Default.Home, homeScrollState) { Main(this, homeScrollState) },
+        Screen("editing", R.string.editing_page, Icons.Default.Settings, editingScrollState) { Edit(this, editingScrollState) }
     )
 
     @OptIn(DelicateCoroutinesApi::class)

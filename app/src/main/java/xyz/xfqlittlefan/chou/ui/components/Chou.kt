@@ -1,12 +1,15 @@
 package xyz.xfqlittlefan.chou.ui.components
 
 import androidx.compose.animation.*
-import androidx.compose.foundation.*
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.TextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -28,11 +31,11 @@ import xyz.xfqlittlefan.chou.R
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun Main(viewModel: ActivityViewModel) {
+fun Main(viewModel: ActivityViewModel, state: ScrollState) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(viewModel.homeScrollState),
+            .verticalScroll(state),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -86,18 +89,12 @@ fun Main(viewModel: ActivityViewModel) {
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalAnimationApi::class)
 @Composable
-fun Edit(viewModel: ActivityViewModel) {
+fun Edit(viewModel: ActivityViewModel, state: LazyListState) {
     Scaffold(
         modifier = Modifier.nestedScroll(viewModel.scrollBehavior.nestedScrollConnection),
         topBar = {
-            val offset = when (viewModel.currentScrollState) {
-                is ScrollState -> (viewModel.currentScrollState as ScrollState).value
-                is LazyListState -> (viewModel.currentScrollState as LazyListState).firstVisibleItemScrollOffset
-                else -> 0
-            }
-            val fraction = if (offset > 0) 1f else 0f
             val background by TopAppBarDefaults.smallTopAppBarColors().containerColor(
-                scrollFraction = fraction
+                scrollFraction = viewModel.fraction
             )
             Column(modifier = Modifier.background(color = background)) {
                 Spacer(modifier = Modifier.height(5.dp))
@@ -170,7 +167,7 @@ fun Edit(viewModel: ActivityViewModel) {
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize(),
-            state = viewModel.editingScrollState
+            state = state
         ) {
             itemsIndexed(items = viewModel.list, key = { _, item -> item.toString() }) { index, item ->
                 Surface(

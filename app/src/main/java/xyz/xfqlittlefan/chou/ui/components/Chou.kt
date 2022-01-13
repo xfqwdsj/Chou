@@ -91,7 +91,6 @@ fun Main(viewModel: ActivityViewModel, state: ScrollState) {
 @Composable
 fun Edit(viewModel: ActivityViewModel, state: LazyListState) {
     Scaffold(
-        modifier = Modifier.nestedScroll(viewModel.scrollBehavior.nestedScrollConnection),
         topBar = {
             val background by TopAppBarDefaults.smallTopAppBarColors().containerColor(
                 scrollFraction = viewModel.fraction

@@ -24,7 +24,7 @@ import xyz.xfqlittlefan.chou.ui.components.Main
 class ActivityViewModel : ViewModel() {
     private val homeScrollState = ScrollState(0)
     private var editingScrollState = LazyListState()
-    var currentScrollState: Any = homeScrollState
+    var currentScrollState: Any by mutableStateOf(homeScrollState)
 
     private val offset
         get() = when (currentScrollState) {

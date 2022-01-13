@@ -190,65 +190,51 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     }
-                ) {
-
-                }
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                ) {
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f)
+                ) { padding ->
+                    LazyColumn(
+                        modifier = Modifier.padding(padding).fillMaxSize(),
+                        state = viewModel.listState
                     ) {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            state = viewModel.listState
-                        ) {
-                            itemsIndexed(items = viewModel.list, key = { _, item -> item.toString() }) { index, item ->
-                                Surface(
+                        itemsIndexed(items = viewModel.list, key = { _, item -> item.toString() }) { index, item ->
+                            Surface(
+                                modifier = Modifier
+                                    .padding(horizontal = 10.dp, vertical = 5.dp)
+                                    .fillMaxWidth()
+                                    .animateItemPlacement(),
+                                shape = RoundedCornerShape(10.dp),
+                                tonalElevation = 4.dp
+                            ) {
+                                Row(
                                     modifier = Modifier
-                                        .padding(horizontal = 10.dp, vertical = 5.dp)
                                         .fillMaxWidth()
-                                        .animateItemPlacement(),
-                                    shape = RoundedCornerShape(10.dp),
-                                    tonalElevation = 4.dp
+                                        .padding(20.dp),
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(20.dp),
-                                        verticalAlignment = Alignment.CenterVertically
+                                    AnimatedContent(
+                                        targetState = item.value,
+                                        modifier = Modifier.weight(1f),
+                                        transitionSpec = { fadeIn() with fadeOut() }
                                     ) {
-                                        AnimatedContent(
-                                            targetState = item.value,
-                                            modifier = Modifier.weight(1f),
-                                            transitionSpec = { fadeIn() with fadeOut() }
+                                        Text(text = it)
+                                    }
+                                    Spacer(modifier = Modifier.width(20.dp))
+                                    Row {
+                                        IconButton(
+                                            onClick = { viewModel.add(index + 1) }
                                         ) {
-                                            Text(text = it)
+                                            Icon(imageVector = Icons.Filled.Add, contentDescription = stringResource(id = R.string.add_item))
                                         }
-                                        Spacer(modifier = Modifier.width(20.dp))
-                                        Row {
-                                            IconButton(
-                                                onClick = { viewModel.add(index + 1) }
-                                            ) {
-                                                Icon(imageVector = Icons.Filled.Add, contentDescription = stringResource(id = R.string.add_item))
-                                            }
-                                            Spacer(modifier = Modifier.width(10.dp))
-                                            IconButton(
-                                                onClick = { viewModel.remove(index) }
-                                            ) {
-                                                Icon(imageVector = Icons.Filled.Delete, contentDescription = stringResource(id = R.string.remove_item))
-                                            }
-                                            Spacer(modifier = Modifier.width(10.dp))
-                                            IconButton(
-                                                onClick = { viewModel.editing = index }
-                                            ) {
-                                                Icon(imageVector = Icons.Filled.Edit, contentDescription = stringResource(id = R.string.edit_item))
-                                            }
+                                        Spacer(modifier = Modifier.width(10.dp))
+                                        IconButton(
+                                            onClick = { viewModel.remove(index) }
+                                        ) {
+                                            Icon(imageVector = Icons.Filled.Delete, contentDescription = stringResource(id = R.string.remove_item))
+                                        }
+                                        Spacer(modifier = Modifier.width(10.dp))
+                                        IconButton(
+                                            onClick = { viewModel.editing = index }
+                                        ) {
+                                            Icon(imageVector = Icons.Filled.Edit, contentDescription = stringResource(id = R.string.edit_item))
                                         }
                                     }
                                 }
@@ -286,7 +272,6 @@ class MainActivity : ComponentActivity() {
                                         }
                                     }
                                 },
-                                colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = Color.Black), //TODO: 移除此行
                                 scrollBehavior = viewModel.scrollBehavior
                             )
                         },

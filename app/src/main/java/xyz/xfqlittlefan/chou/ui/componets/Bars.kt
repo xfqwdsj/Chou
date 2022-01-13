@@ -2,7 +2,6 @@ package xyz.xfqlittlefan.chou.ui.componets
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -19,8 +18,7 @@ fun ChouAppBar(
     navigationIcon: @Composable () -> Unit = {},
     actions: @Composable RowScope.() -> Unit = {},
     colors: TopAppBarColors = TopAppBarDefaults.smallTopAppBarColors(),
-    scrollBehavior: TopAppBarScrollBehavior? = null,
-    content: @Composable () -> Unit
+    scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
     val backgroundColor by colors.containerColor(
         scrollFraction = scrollBehavior?.scrollFraction ?: 0f
@@ -29,7 +27,7 @@ fun ChouAppBar(
         containerColor = Color.Transparent,
         scrolledContainerColor = Color.Transparent
     )
-    Column(modifier = Modifier.background(backgroundColor)) {
+    Box(modifier = Modifier.background(backgroundColor)) {
         SmallTopAppBar(
             title = title,
             modifier = modifier,
@@ -38,7 +36,6 @@ fun ChouAppBar(
             colors = foregroundColors,
             scrollBehavior = scrollBehavior
         )
-        content()
     }
 }
 

@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.animation.*
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -118,6 +119,80 @@ class MainActivity : ComponentActivity() {
 
             @Composable
             fun Edit() {
+                Scaffold(
+                    modifier = Modifier.nestedScroll(viewModel.scrollBehavior.nestedScrollConnection),
+                    topBar = {
+                        val background by TopAppBarDefaults.smallTopAppBarColors().containerColor(
+                            scrollFraction = viewModel.scrollBehavior.scrollFraction
+                        )
+                        Column(modifier = Modifier.background(color = background)) {
+                            AnimatedVisibility(visible = viewModel.editing != null) {
+                                val requester = FocusRequester()
+                                val initValue = viewModel.editing?.let { viewModel.list[it].value } ?: ""
+                                var value by remember {
+                                    mutableStateOf(
+                                        TextFieldValue(
+                                            text = initValue,
+                                            selection = TextRange(index = initValue.length)
+                                        )
+                                    )
+                                }
+
+                                SideEffect {
+                                    requester.requestFocus()
+                                }
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Spacer(modifier = Modifier.width(10.dp))
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .clip(shape = RoundedCornerShape(size = 10.dp))
+                                    ) {
+                                        TextField(
+                                            value = value,
+                                            onValueChange = { value = it },
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .focusRequester(requester)
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.width(10.dp))
+                                    IconButton(onClick = { viewModel.editing = null }) {
+                                        Icon(imageVector = Icons.Filled.Close, contentDescription = stringResource(id = android.R.string.cancel))
+                                    }
+                                    Spacer(modifier = Modifier.width(10.dp))
+                                    IconButton(onClick = {
+                                        viewModel.list[viewModel.editing!!].value = value.text
+                                        viewModel.editing = null
+                                    }) {
+                                        Icon(imageVector = Icons.Filled.Done, contentDescription = stringResource(id = android.R.string.ok))
+                                    }
+                                    Spacer(modifier = Modifier.width(10.dp))
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(5.dp))
+                            TextButton(
+                                onClick = {
+                                    viewModel.add(0)
+                                },
+                                modifier = Modifier
+                                    .padding(horizontal = 10.dp)
+                                    .fillMaxWidth(),
+                                shape = RoundedCornerShape(size = 10.dp)
+                            ) {
+                                Text(
+                                    text = stringResource(id = R.string.add_item)
+                                )
+                            }
+                        }
+                    }
+                ) {
+
+                }
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -183,80 +258,12 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            @Composable
-            fun Editor() {
-                Column {
-                    AnimatedVisibility(visible = viewModel.editing != null) {
-                        val requester = FocusRequester()
-                        val initValue = viewModel.editing?.let { viewModel.list[it].value } ?: ""
-                        var value by remember {
-                            mutableStateOf(
-                                TextFieldValue(
-                                    text = initValue,
-                                    selection = TextRange(index = initValue.length)
-                                )
-                            )
-                        }
-
-                        SideEffect {
-                            requester.requestFocus()
-                        }
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .clip(shape = RoundedCornerShape(size = 10.dp))
-                            ) {
-                                TextField(
-                                    value = value,
-                                    onValueChange = { value = it },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .focusRequester(requester)
-                                )
-                            }
-                            Spacer(modifier = Modifier.width(10.dp))
-                            IconButton(onClick = { viewModel.editing = null }) {
-                                Icon(imageVector = Icons.Filled.Close, contentDescription = stringResource(id = android.R.string.cancel))
-                            }
-                            Spacer(modifier = Modifier.width(10.dp))
-                            IconButton(onClick = {
-                                viewModel.list[viewModel.editing!!].value = value.text
-                                viewModel.editing = null
-                            }) {
-                                Icon(imageVector = Icons.Filled.Done, contentDescription = stringResource(id = android.R.string.ok))
-                            }
-                            Spacer(modifier = Modifier.width(10.dp))
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(5.dp))
-                    TextButton(
-                        onClick = {
-                            viewModel.add(0)
-                        },
-                        modifier = Modifier
-                            .padding(horizontal = 10.dp)
-                            .fillMaxWidth(),
-                        shape = RoundedCornerShape(size = 10.dp)
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.add_item)
-                        )
-                    }
-                }
-            }
-
             ChouTheme {
                 ProvideWindowInsets(windowInsetsAnimationsEnabled = true) {
                     val navController = rememberNavController()
-                    val items = listOf<Pair<Pair<Int, ImageVector>, Pair<@Composable () -> Unit, @Composable () -> Unit>>>(
-                        Pair(Pair(R.string.chou_page, Icons.Default.Home), Pair(@Composable { Main() }, @Composable { })),
-                        Pair(Pair(R.string.edit_page, Icons.Default.Settings), Pair(@Composable { Edit() }, @Composable { Editor() }))
+                    val items = listOf<Pair<Pair<Int, ImageVector>, @Composable () -> Unit>>(
+                        Pair(Pair(R.string.chou_page, Icons.Default.Home)) @Composable { Main() },
+                        Pair(Pair(R.string.edit_page, Icons.Default.Settings)) @Composable { Edit() }
                     )
 
                     Scaffold(
@@ -281,13 +288,7 @@ class MainActivity : ComponentActivity() {
                                 },
                                 colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = Color.Black), //TODO: 移除此行
                                 scrollBehavior = viewModel.scrollBehavior
-                            ) {
-                                NavHost(navController = navController, startDestination = items[0].first.first.toString()) {
-                                    items.forEach { item ->
-                                        composable(item.first.first.toString()) { item.second.second() }
-                                    }
-                                }
-                            }
+                            )
                         },
                         bottomBar = {
                             ChouNavigationBar(modifier = Modifier.navigationBarsPadding()) {
@@ -314,7 +315,7 @@ class MainActivity : ComponentActivity() {
                     ) { innerPadding ->
                         NavHost(navController = navController, startDestination = items[0].first.first.toString(), modifier = Modifier.padding(innerPadding)) {
                             items.forEach { item ->
-                                composable(item.first.first.toString()) { item.second.first() }
+                                composable(item.first.first.toString()) { item.second() }
                             }
                         }
                     }

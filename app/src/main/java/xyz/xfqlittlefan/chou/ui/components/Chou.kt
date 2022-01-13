@@ -96,7 +96,6 @@ fun Edit(viewModel: ActivityViewModel, state: LazyListState) {
                 scrollFraction = viewModel.fraction
             )
             Column(modifier = Modifier.background(color = background)) {
-                Spacer(modifier = Modifier.height(5.dp))
                 AnimatedVisibility(visible = viewModel.isEditing != null) {
                     val requester = FocusRequester()
                     val initValue = viewModel.isEditing?.let { viewModel.list[it].value } ?: ""
@@ -113,6 +112,7 @@ fun Edit(viewModel: ActivityViewModel, state: LazyListState) {
                         requester.requestFocus()
                     }
 
+                    Spacer(modifier = Modifier.height(5.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically

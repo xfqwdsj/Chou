@@ -111,37 +111,39 @@ fun Edit(viewModel: ActivityViewModel, state: LazyListState) {
                         requester.requestFocus()
                     }
 
-                    Spacer(modifier = Modifier.height(5.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .clip(shape = RoundedCornerShape(size = 10.dp))
+                    Column {
+                        Spacer(modifier = Modifier.height(5.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            TextField(
-                                value = value,
-                                onValueChange = { value = it },
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Box(
                                 modifier = Modifier
-                                    .fillMaxWidth()
-                                    .focusRequester(requester)
-                            )
+                                    .weight(1f)
+                                    .clip(shape = RoundedCornerShape(size = 10.dp))
+                            ) {
+                                TextField(
+                                    value = value,
+                                    onValueChange = { value = it },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .focusRequester(requester)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(10.dp))
+                            IconButton(onClick = { viewModel.isEditing = null }) {
+                                Icon(imageVector = Icons.Filled.Close, contentDescription = stringResource(id = android.R.string.cancel))
+                            }
+                            Spacer(modifier = Modifier.width(10.dp))
+                            IconButton(onClick = {
+                                viewModel.list[viewModel.isEditing!!].value = value.text
+                                viewModel.isEditing = null
+                            }) {
+                                Icon(imageVector = Icons.Filled.Done, contentDescription = stringResource(id = android.R.string.ok))
+                            }
+                            Spacer(modifier = Modifier.width(10.dp))
                         }
-                        Spacer(modifier = Modifier.width(10.dp))
-                        IconButton(onClick = { viewModel.isEditing = null }) {
-                            Icon(imageVector = Icons.Filled.Close, contentDescription = stringResource(id = android.R.string.cancel))
-                        }
-                        Spacer(modifier = Modifier.width(10.dp))
-                        IconButton(onClick = {
-                            viewModel.list[viewModel.isEditing!!].value = value.text
-                            viewModel.isEditing = null
-                        }) {
-                            Icon(imageVector = Icons.Filled.Done, contentDescription = stringResource(id = android.R.string.ok))
-                        }
-                        Spacer(modifier = Modifier.width(10.dp))
                     }
                 }
                 Spacer(modifier = Modifier.height(5.dp))

@@ -53,10 +53,10 @@ class MainActivity : ComponentActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         setContent {
-            val controller = rememberSystemUiController()
+            val systemUiController = rememberSystemUiController()
 
             SideEffect {
-                controller.setNavigationBarColor(color = Color.Transparent)
+                systemUiController.setNavigationBarColor(color = Color.Transparent)
             }
 
             @Composable
@@ -253,7 +253,6 @@ class MainActivity : ComponentActivity() {
 
             ChouTheme {
                 ProvideWindowInsets(windowInsetsAnimationsEnabled = true) {
-                    val scrollBehavior = remember { TopAppBarDefaults.pinnedScrollBehavior() }
                     val navController = rememberNavController()
                     val items = listOf<Pair<Pair<Int, ImageVector>, Pair<@Composable () -> Unit, @Composable () -> Unit>>>(
                         Pair(Pair(R.string.chou_page, Icons.Default.Home), Pair(@Composable { Main() }, @Composable { })),
@@ -261,7 +260,7 @@ class MainActivity : ComponentActivity() {
                     )
 
                     Scaffold(
-                        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+                        modifier = Modifier.nestedScroll(viewModel.scrollBehavior.nestedScrollConnection),
                         topBar = {
                             ChouAppBar(
                                 title = { Text(stringResource(id = R.string.app_name)) },
@@ -280,7 +279,8 @@ class MainActivity : ComponentActivity() {
                                         }
                                     }
                                 },
-                                scrollBehavior = scrollBehavior
+                                colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = Color.Black), //TODO: 移除此行
+                                scrollBehavior = viewModel.scrollBehavior
                             ) {
                                 NavHost(navController = navController, startDestination = items[0].first.first.toString()) {
                                     items.forEach { item ->

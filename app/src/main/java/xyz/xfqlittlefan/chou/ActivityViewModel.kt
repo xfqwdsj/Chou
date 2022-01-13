@@ -1,10 +1,16 @@
 package xyz.xfqlittlefan.chou
 
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.navigation.NavController
+import com.google.accompanist.systemuicontroller.SystemUiController
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
@@ -15,6 +21,9 @@ class ActivityViewModel : ViewModel() {
 
     var list by mutableStateOf(listOf<Item>())
         private set
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     var state by mutableStateOf(0)
 

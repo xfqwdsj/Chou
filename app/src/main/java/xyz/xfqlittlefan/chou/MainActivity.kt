@@ -13,7 +13,6 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.core.view.WindowCompat
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -50,7 +49,6 @@ class MainActivity : ComponentActivity() {
                     val navController = rememberNavController()
 
                     Scaffold(
-                        modifier = Modifier.nestedScroll(viewModel.scrollBehavior.nestedScrollConnection),
                         topBar = {
                             ChouAppBar(
                                 title = { Text(stringResource(id = R.string.app_name)) },

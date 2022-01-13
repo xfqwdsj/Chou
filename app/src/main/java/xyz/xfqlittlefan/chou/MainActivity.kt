@@ -22,6 +22,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.insets.ProvideWindowInsets
+import com.google.accompanist.insets.cutoutPadding
 import com.google.accompanist.insets.systemBarsPadding
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import xyz.xfqlittlefan.chou.ui.components.ChouAppBar
@@ -31,7 +32,7 @@ import xyz.xfqlittlefan.chou.ui.theme.ChouTheme
 class MainActivity : ComponentActivity() {
     private val viewModel by viewModels<ActivityViewModel>()
 
-    @OptIn(ExperimentalMaterial3Api::class)
+    @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -51,18 +52,22 @@ class MainActivity : ComponentActivity() {
                         topBar = {
                             ChouAppBar(
                                 title = { Text(stringResource(id = R.string.app_name)) },
-                                modifier = Modifier.systemBarsPadding(bottom = false),
+                                modifier = Modifier
+                                    .systemBarsPadding(bottom = false)
+                                    .cutoutPadding(bottom = false),
                                 actions = {
-                                    AnimatedVisibility(
-                                        visible = viewModel.state == 2,
-                                        enter = fadeIn() + slideInHorizontally(initialOffsetX = { it }),
-                                        exit = fadeOut() + slideOutHorizontally(targetOffsetX = { it })
+                                    AnimatedContent(
+                                        targetState = viewModel.state == 2,
+                                        transitionSpec = {(fadeIn() + slideInHorizontally(initialOffsetX = { it })with
+                                                fadeOut() + slideOutHorizontally(targetOffsetX = { it })).using(SizeTransform(clip = false))}
                                     ) {
-                                        IconButton(onClick = { viewModel.reset() }) {
-                                            Icon(
-                                                imageVector = Icons.Filled.Refresh,
-                                                contentDescription = stringResource(id = R.string.reset)
-                                            )
+                                        if (it) {
+                                            IconButton(onClick = { viewModel.reset() }) {
+                                                Icon(
+                                                    imageVector = Icons.Filled.Refresh,
+                                                    contentDescription = stringResource(id = R.string.reset)
+                                                )
+                                            }
                                         }
                                     }
                                 },

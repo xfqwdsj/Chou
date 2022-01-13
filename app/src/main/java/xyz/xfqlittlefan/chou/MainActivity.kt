@@ -22,8 +22,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.insets.ProvideWindowInsets
-import com.google.accompanist.insets.navigationBarsPadding
-import com.google.accompanist.insets.statusBarsPadding
+import com.google.accompanist.insets.systemBarsPadding
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import xyz.xfqlittlefan.chou.ui.components.ChouAppBar
 import xyz.xfqlittlefan.chou.ui.components.ChouNavigationBar
@@ -52,7 +51,7 @@ class MainActivity : ComponentActivity() {
                         topBar = {
                             ChouAppBar(
                                 title = { Text(stringResource(id = R.string.app_name)) },
-                                modifier = Modifier.statusBarsPadding(),
+                                modifier = Modifier.systemBarsPadding(bottom = false),
                                 actions = {
                                     AnimatedVisibility(
                                         visible = viewModel.state == 2,
@@ -72,7 +71,7 @@ class MainActivity : ComponentActivity() {
                             )
                         },
                         bottomBar = {
-                            ChouNavigationBar(modifier = Modifier.navigationBarsPadding()) {
+                            ChouNavigationBar(modifier = Modifier.systemBarsPadding(top = false)) {
                                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                                 val currentDestination = navBackStackEntry?.destination
                                 viewModel.screenList.forEach { item ->

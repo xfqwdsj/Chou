@@ -25,6 +25,9 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.google.accompanist.insets.LocalWindowInsets
+import com.google.accompanist.insets.rememberInsetsPaddingValues
+import com.google.accompanist.insets.systemBarsPadding
 import xyz.xfqlittlefan.chou.ActivityViewModel
 import xyz.xfqlittlefan.chou.R
 
@@ -43,7 +46,7 @@ fun Main(viewModel: ActivityViewModel, state: ScrollState) {
             targetState = viewModel.list.isNotEmpty(),
             transitionSpec = { fadeIn() with fadeOut() }
         ) { visible ->
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(modifier = Modifier.systemBarsPadding(top = false, bottom = false), horizontalAlignment = Alignment.CenterHorizontally) {
                 if (visible) {
                     AnimatedContent(
                         targetState = viewModel.state,
@@ -94,7 +97,11 @@ fun Edit(viewModel: ActivityViewModel, state: LazyListState) {
             val background by TopAppBarDefaults.smallTopAppBarColors().containerColor(
                 scrollFraction = viewModel.fraction
             )
-            Column(modifier = Modifier.background(color = background)) {
+            Column(
+                modifier = Modifier
+                    .background(color = background)
+                    .systemBarsPadding(top = false, bottom = false)
+            ) {
                 AnimatedVisibility(visible = viewModel.isEditing != null) {
                     val requester = FocusRequester()
                     val initValue = viewModel.isEditing?.let { viewModel.list[it].value } ?: ""
@@ -167,7 +174,8 @@ fun Edit(viewModel: ActivityViewModel, state: LazyListState) {
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize(),
-            state = state
+            state = state,
+            contentPadding = rememberInsetsPaddingValues(insets = LocalWindowInsets.current.systemBars, applyTop = false, applyBottom = false)
         ) {
             itemsIndexed(items = viewModel.list, key = { _, item -> item.toString() }) { index, item ->
                 Surface(

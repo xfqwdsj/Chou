@@ -1,5 +1,6 @@
 package xyz.xfqlittlefan.chou.ui.components
 
+import android.widget.Toast
 import androidx.compose.animation.*
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -26,6 +27,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
@@ -123,11 +125,6 @@ fun Edit(viewModel: ActivityViewModel, state: LazyListState) {
                         when (viewModel.editing?.let { viewModel.itemList[it].type }) {
                             R.string.item_type_0 -> {
                                 val requester = FocusRequester()
-                                val initValue = viewModel.editing?.let { viewModel.itemList[it].value } ?: ""
-                                viewModel.editingValue = TextFieldValue(
-                                    text = initValue,
-                                    selection = TextRange(index = initValue.length)
-                                )
 
                                 SideEffect {
                                     requester.requestFocus()
@@ -136,9 +133,13 @@ fun Edit(viewModel: ActivityViewModel, state: LazyListState) {
                                 Box(
                                     modifier = Modifier.clip(shape = RoundedCornerShape(size = 10.dp))
                                 ) {
+                                    val context = LocalContext.current
                                     TextField(
                                         value = viewModel.editingValue,
-                                        onValueChange = { viewModel.editingValue = it },
+                                        onValueChange = {
+                                            Toast.makeText(context, "${viewModel.editingValue}\n$it", Toast.LENGTH_LONG).show()
+                                            viewModel.editingValue = it
+                                        },
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .focusRequester(requester)
@@ -219,8 +220,16 @@ fun Edit(viewModel: ActivityViewModel, state: LazyListState) {
                             ButtonWithIcon(label = stringResource(id = R.string.remove_item), icon = Icons.Default.Delete) {
                                 viewModel.removeItem(index)
                             }
+                            val context = LocalContext.current
                             ButtonWithIcon(label = stringResource(id = R.string.edit_item), icon = Icons.Default.Edit) {
                                 viewModel.editing = index
+                                val initValue = viewModel.editing?.let { viewModel.itemList[it].value } ?: ""
+                                Toast.makeText(context, "${viewModel.editingValue}", Toast.LENGTH_LONG).show()
+                                viewModel.editingValue = TextFieldValue(
+                                    text = initValue,
+                                    selection = TextRange(index = initValue.length)
+                                )
+                                Toast.makeText(context, "${viewModel.editingValue}", Toast.LENGTH_LONG).show()
                             }
                         }
                     }

@@ -49,7 +49,7 @@ class ActivityViewModel : ViewModel() {
     var currentItem by mutableStateOf(0)
 
     var editing: Int? by mutableStateOf(null)
-    var editingValue by mutableStateOf(TextFieldValue(text = "initValue"))
+    var editingValue by mutableStateOf(TextFieldValue(text = ""))
 
     val screenList = listOf(
         Screen("home", R.string.home, Icons.Default.Home, homeScrollState) { Main(this, homeScrollState) },

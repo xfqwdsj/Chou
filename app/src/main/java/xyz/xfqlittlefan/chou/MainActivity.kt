@@ -79,15 +79,15 @@ class MainActivity : ComponentActivity() {
                                 enter = slideInVertically { it },
                                 exit = slideOutVertically { it }
                             ) {
-                                ChouNavigationBar(
-                                    modifier = Modifier
-                                        .systemBarsPadding(top = false)
-                                        .cutoutPadding(top = false, bottom = false)
-                                ) {
-                                    val navBackStackEntry by navController.currentBackStackEntryAsState()
-                                    val currentDestination = navBackStackEntry?.destination
-                                    viewModel.screenList.forEach { item ->
-                                        AnimatedContent(targetState = viewModel.appState == 0) { targetState ->
+                                AnimatedContent(targetState = viewModel.appState == 0) { targetState ->
+                                    ChouNavigationBar(
+                                        modifier = Modifier
+                                            .systemBarsPadding(top = false)
+                                            .cutoutPadding(top = false, bottom = false)
+                                    ) {
+                                        val navBackStackEntry by navController.currentBackStackEntryAsState()
+                                        val currentDestination = navBackStackEntry?.destination
+                                        viewModel.screenList.forEach { item ->
                                             NavigationBarItem(
                                                 selected = currentDestination?.hierarchy?.any { it.route == item.route } == true,
                                                 onClick = {

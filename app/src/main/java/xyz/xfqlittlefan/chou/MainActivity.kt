@@ -74,11 +74,11 @@ class MainActivity : ComponentActivity() {
                             )
                         },
                         bottomBar = {
-                            AnimatedVisibility(
-                                visible = viewModel.appState == 0,
-                                //enter = expandVertically { it },
-                                //exit = shrinkVertically { it }
-                            ) {
+                            //AnimatedVisibility(
+                            //    visible = viewModel.appState == 0,
+                            //    enter = expandVertically { it },
+                            //    exit = shrinkVertically { it }
+                            //) {
                                 ChouNavigationBar(
                                     modifier = Modifier
                                         .systemBarsPadding(top = false)
@@ -104,7 +104,7 @@ class MainActivity : ComponentActivity() {
                                         )
                                     }
                                 }
-                            }
+                            //}
                         }
                     ) { innerPadding ->
                         NavHost(navController = navController, startDestination = viewModel.screenList[0].route, modifier = Modifier.padding(innerPadding)) {

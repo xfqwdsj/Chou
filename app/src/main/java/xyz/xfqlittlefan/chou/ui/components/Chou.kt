@@ -121,7 +121,7 @@ fun Edit(viewModel: ActivityViewModel, state: LazyListState) {
                     Column(modifier = Modifier.padding(horizontal = 10.dp)) {
                         Spacer(Modifier.height(5.dp))
                         when (viewModel.editing?.let { viewModel.itemList[it].type }) {
-                            0 -> {
+                            R.string.item_type_0 -> {
                                 val requester = FocusRequester()
                                 val initValue = viewModel.editing?.let { viewModel.itemList[it].value } ?: ""
                                 viewModel.editingValue = TextFieldValue(
@@ -178,55 +178,55 @@ fun Edit(viewModel: ActivityViewModel, state: LazyListState) {
         }
     ) { padding ->
         val radius by animateDpAsState(targetValue = if (viewModel.editing != null) 10.dp else 0.dp)
-            LazyColumn(
-                modifier = Modifier
-                    .padding(padding)
-                    .fillMaxSize()
-                    .blur(radius),
-                state = state,
-                contentPadding = rememberInsetsPaddingValues(insets = LocalWindowInsets.current.systemBars, applyTop = false, applyBottom = false)
-                    .plus(rememberInsetsPaddingValues(insets = LocalWindowInsets.current.displayCutout, applyTop = false, applyBottom = false), LocalLayoutDirection.current)
-            ) {
-                itemsIndexed(items = viewModel.itemList, key = { _, item -> item.toString() }) { index, item ->
-                    Surface(
+        LazyColumn(
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxSize()
+                .let { if (radius > 0.dp) it.blur(radius) else it },
+            state = state,
+            contentPadding = rememberInsetsPaddingValues(insets = LocalWindowInsets.current.systemBars, applyTop = false, applyBottom = false)
+                .plus(rememberInsetsPaddingValues(insets = LocalWindowInsets.current.displayCutout, applyTop = false, applyBottom = false), LocalLayoutDirection.current)
+        ) {
+            itemsIndexed(items = viewModel.itemList, key = { _, item -> item.toString() }) { index, item ->
+                Surface(
+                    modifier = Modifier
+                        .padding(horizontal = 10.dp, vertical = 5.dp)
+                        .fillMaxWidth()
+                        .animateItemPlacement(),
+                    shape = RoundedCornerShape(10.dp),
+                    tonalElevation = 4.dp
+                ) {
+                    Column(
                         modifier = Modifier
-                            .padding(horizontal = 10.dp, vertical = 5.dp)
                             .fillMaxWidth()
-                            .animateItemPlacement(),
-                        shape = RoundedCornerShape(10.dp),
-                        tonalElevation = 4.dp
+                            .padding(20.dp)
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(20.dp)
+                        CompositionLocalProvider(LocalContentColor provides LocalContentColor.current.copy(alpha = 0.38f)) {
+                            Text(text = stringResource(id = item.type))
+                        }
+                        Spacer(Modifier.width(10.dp))
+                        AnimatedContent(
+                            targetState = item.value,
+                            transitionSpec = { fadeIn() with fadeOut() }
                         ) {
-                            CompositionLocalProvider(LocalContentColor provides LocalContentColor.current.copy(alpha = 0.38f)) {
-                                Text(text = stringResource(id = item.type))
+                            Text(text = it)
+                        }
+                        Spacer(Modifier.width(10.dp))
+                        FlowRow {
+                            ButtonWithIcon(label = stringResource(id = R.string.add_item), icon = Icons.Default.Add) {
+                                viewModel.addItem(index + 1)
                             }
-                            Spacer(Modifier.width(10.dp))
-                            AnimatedContent(
-                                targetState = item.value,
-                                transitionSpec = { fadeIn() with fadeOut() }
-                            ) {
-                                Text(text = it)
+                            ButtonWithIcon(label = stringResource(id = R.string.remove_item), icon = Icons.Default.Delete) {
+                                viewModel.removeItem(index)
                             }
-                            Spacer(Modifier.width(10.dp))
-                            FlowRow {
-                                ButtonWithIcon(label = stringResource(id = R.string.add_item), icon = Icons.Default.Add) {
-                                    viewModel.addItem(index + 1)
-                                }
-                                ButtonWithIcon(label = stringResource(id = R.string.remove_item), icon = Icons.Default.Delete) {
-                                    viewModel.removeItem(index)
-                                }
-                                ButtonWithIcon(label = stringResource(id = R.string.edit_item), icon = Icons.Default.Edit) {
-                                    viewModel.editing = index
-                                }
+                            ButtonWithIcon(label = stringResource(id = R.string.edit_item), icon = Icons.Default.Edit) {
+                                viewModel.editing = index
                             }
                         }
                     }
                 }
             }
+        }
     }
 }
 

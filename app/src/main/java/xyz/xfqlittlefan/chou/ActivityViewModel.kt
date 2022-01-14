@@ -93,7 +93,6 @@ class ActivityViewModel : ViewModel() {
     }
 
     fun resetState() {
-        editScrollState = LazyListState()
         appState = 0
         currentItem = 0
     }

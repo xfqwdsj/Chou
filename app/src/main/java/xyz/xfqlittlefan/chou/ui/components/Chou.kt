@@ -46,7 +46,7 @@ fun Main(viewModel: ActivityViewModel, state: ScrollState) {
     ) {
         Spacer(modifier = Modifier.height(50.dp))
         AnimatedContent(
-            targetState = viewModel.list.isNotEmpty(),
+            targetState = viewModel.itemList.isNotEmpty(),
             transitionSpec = { fadeIn() with fadeOut() }
         ) { visible ->
             Column(modifier = Modifier
@@ -54,14 +54,14 @@ fun Main(viewModel: ActivityViewModel, state: ScrollState) {
                 .cutoutPadding(top = false, bottom = false), horizontalAlignment = Alignment.CenterHorizontally) {
                 if (visible) {
                     AnimatedContent(
-                        targetState = viewModel.state,
+                        targetState = viewModel.appState,
                         modifier = Modifier.padding(horizontal = 30.dp),
                         transitionSpec = { fadeIn() with fadeOut() }
                     ) {
                         Text(text = stringResource(id = if (it == 2) R.string.chose_item else R.string.current_item), style = MaterialTheme.typography.titleMedium)
                     }
                     AnimatedContent(
-                        targetState = viewModel.current,
+                        targetState = viewModel.currentItem,
                         modifier = Modifier
                             .padding(30.dp)
                             .fillMaxWidth(),
@@ -71,14 +71,14 @@ fun Main(viewModel: ActivityViewModel, state: ScrollState) {
                         }
                     ) {
                         Text(
-                            text = if (viewModel.list.isEmpty()) "" else viewModel.list[it].value,
+                            text = if (viewModel.itemList.isEmpty()) "" else viewModel.itemList[it].value,
                             textAlign = TextAlign.Center,
                             style = MaterialTheme.typography.displaySmall
                         )
                     }
-                    AnimatedVisibility(visible = viewModel.state == 0) {
+                    AnimatedVisibility(visible = viewModel.appState == 0) {
                         Button(
-                            onClick = { viewModel.start() }
+                            onClick = { viewModel.startSelecting() }
                         ) {
                             Text(text = stringResource(id = R.string.choose))
                         }
@@ -110,7 +110,7 @@ fun Edit(viewModel: ActivityViewModel, state: LazyListState) {
             ) {
                 AnimatedVisibility(visible = viewModel.isEditing != null) {
                     val requester = FocusRequester()
-                    val initValue = viewModel.isEditing?.let { viewModel.list[it].value } ?: ""
+                    val initValue = viewModel.isEditing?.let { viewModel.itemList[it].value } ?: ""
                     var value by remember {
                         mutableStateOf(
                             TextFieldValue(
@@ -150,7 +150,7 @@ fun Edit(viewModel: ActivityViewModel, state: LazyListState) {
                             }
                             Spacer(modifier = Modifier.width(10.dp))
                             IconButton(onClick = {
-                                viewModel.list[viewModel.isEditing!!].value = value.text
+                                viewModel.itemList[viewModel.isEditing!!].value = value.text
                                 viewModel.isEditing = null
                             }) {
                                 Icon(imageVector = Icons.Filled.Done, contentDescription = stringResource(id = android.R.string.ok))
@@ -162,7 +162,7 @@ fun Edit(viewModel: ActivityViewModel, state: LazyListState) {
                 Spacer(modifier = Modifier.height(5.dp))
                 TextButton(
                     onClick = {
-                        viewModel.add(0)
+                        viewModel.addItem(0)
                     },
                     modifier = Modifier
                         .padding(horizontal = 10.dp)
@@ -184,7 +184,7 @@ fun Edit(viewModel: ActivityViewModel, state: LazyListState) {
             contentPadding = rememberInsetsPaddingValues(insets = LocalWindowInsets.current.systemBars, applyTop = false, applyBottom = false)
                 .plus(rememberInsetsPaddingValues(insets = LocalWindowInsets.current.displayCutout, applyTop = false, applyBottom = false), LocalLayoutDirection.current)
         ) {
-            itemsIndexed(items = viewModel.list, key = { _, item -> item.toString() }) { index, item ->
+            itemsIndexed(items = viewModel.itemList, key = { _, item -> item.toString() }) { index, item ->
                 Surface(
                     modifier = Modifier
                         .padding(horizontal = 10.dp, vertical = 5.dp)
@@ -209,13 +209,13 @@ fun Edit(viewModel: ActivityViewModel, state: LazyListState) {
                         Spacer(modifier = Modifier.width(20.dp))
                         Row {
                             IconButton(
-                                onClick = { viewModel.add(index + 1) }
+                                onClick = { viewModel.addItem(index + 1) }
                             ) {
                                 Icon(imageVector = Icons.Filled.Add, contentDescription = stringResource(id = R.string.add_item))
                             }
                             Spacer(modifier = Modifier.width(10.dp))
                             IconButton(
-                                onClick = { viewModel.remove(index) }
+                                onClick = { viewModel.removeItem(index) }
                             ) {
                                 Icon(imageVector = Icons.Filled.Delete, contentDescription = stringResource(id = R.string.remove_item))
                             }

@@ -35,15 +35,16 @@ class ActivityViewModel : ViewModel() {
     val fraction
         get() = if (offset > 0) 1f else 0f
 
-    var list by mutableStateOf(listOf<Item>())
+    var itemList by mutableStateOf(listOf<Item>())
         private set
 
     @OptIn(ExperimentalMaterial3Api::class)
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
-    var state by mutableStateOf(0)
+    // 0: 空闲  1: 正在选取  2: 已出结果
+    var appState by mutableStateOf(0)
 
-    var current by mutableStateOf(0)
+    var currentItem by mutableStateOf(0)
 
     var isEditing: Int? by mutableStateOf(null)
 
@@ -53,41 +54,45 @@ class ActivityViewModel : ViewModel() {
     )
 
     @OptIn(DelicateCoroutinesApi::class)
-    fun add(position: Int) {
+    fun addItem(position: Int) {
         GlobalScope.launch {
-            list = list.toMutableList().apply { add(position, Item()) }
+            itemList = itemList.toMutableList().apply { add(position, Item()) }
         }
     }
 
     @OptIn(DelicateCoroutinesApi::class)
-    fun remove(position: Int) {
+    fun removeItem(position: Int) {
         GlobalScope.launch {
-            list = list.toMutableList().apply { removeAt(position) }
+            itemList = itemList.toMutableList().apply { removeAt(position) }
         }
     }
 
     @OptIn(DelicateCoroutinesApi::class)
-    fun start() {
-        state = 1
-        val time = (list.size * (500..700).random()).toLong()
+    fun startSelecting() {
+        appState = 1
+        val time = (4 - (10 / (itemList.size + 2.5))).toLong()
         val job = GlobalScope.launch {
             while (true) {
-                if (current + 1 == list.size) current = 0 else current++
+                if (itemList.size >= 6) {
+                    currentItem = (itemList.indices).random()
+                } else {
+                    if (currentItem + 1 == itemList.size) currentItem = 0 else currentItem++
+                }
                 delay(150)
             }
         }
         GlobalScope.launch {
             delay(time)
             job.cancel()
-            current = list.indices.random()
-            state = 2
+            currentItem = itemList.indices.random()
+            appState = 2
         }
     }
 
-    fun reset() {
+    fun resetState() {
         editingScrollState = LazyListState()
-        state = 0
-        current = 0
+        appState = 0
+        currentItem = 0
     }
 
     class Item {

@@ -57,11 +57,11 @@ class MainActivity : ComponentActivity() {
                                     .cutoutPadding(top = false, bottom = false),
                                 actions = {
                                     AnimatedVisibility(
-                                        visible = viewModel.state == 2,
+                                        visible = viewModel.appState == 2,
                                         enter = fadeIn() + slideInHorizontally(initialOffsetX = { it }),
                                         exit = fadeOut() + slideOutHorizontally(targetOffsetX = { it })
                                     ) {
-                                        IconButton(onClick = { viewModel.reset() }) {
+                                        IconButton(onClick = { viewModel.resetState() }) {
                                             Icon(
                                                 imageVector = Icons.Filled.Refresh,
                                                 contentDescription = stringResource(id = R.string.reset)
@@ -74,24 +74,37 @@ class MainActivity : ComponentActivity() {
                             )
                         },
                         bottomBar = {
-                            ChouNavigationBar(modifier = Modifier.systemBarsPadding(top = false).cutoutPadding(top = false, bottom = false)) {
-                                val navBackStackEntry by navController.currentBackStackEntryAsState()
-                                val currentDestination = navBackStackEntry?.destination
-                                viewModel.screenList.forEach { item ->
-                                    NavigationBarItem(
-                                        icon = { Icon(imageVector = item.icon, contentDescription = stringResource(id = item.resId)) },
-                                        label = { Text(stringResource(id = item.resId)) },
-                                        selected = currentDestination?.hierarchy?.any { it.route == item.route } == true,
-                                        onClick = {
-                                            navController.navigate(item.route) {
-                                                popUpTo(navController.graph.findStartDestination().id) {
-                                                    saveState = true
-                                                }
-                                                launchSingleTop = true
-                                                restoreState = true
-                                            }
+                            AnimatedVisibility(
+                                visible = viewModel.appState == 0,
+                                enter = slideInVertically { it },
+                                exit = slideOutVertically { it }
+                            ) {
+                                ChouNavigationBar(
+                                    modifier = Modifier
+                                        .systemBarsPadding(top = false)
+                                        .cutoutPadding(top = false, bottom = false)
+                                ) {
+                                    val navBackStackEntry by navController.currentBackStackEntryAsState()
+                                    val currentDestination = navBackStackEntry?.destination
+                                    viewModel.screenList.forEach { item ->
+                                        AnimatedContent(targetState = viewModel.appState == 1) { targetState ->
+                                            NavigationBarItem(
+                                                selected = currentDestination?.hierarchy?.any { it.route == item.route } == true,
+                                                onClick = {
+                                                    navController.navigate(item.route) {
+                                                        popUpTo(navController.graph.findStartDestination().id) {
+                                                            saveState = true
+                                                        }
+                                                        launchSingleTop = true
+                                                        restoreState = true
+                                                    }
+                                                },
+                                                icon = { Icon(imageVector = item.icon, contentDescription = stringResource(id = item.resId)) },
+                                                enabled = targetState,
+                                                label = { Text(stringResource(id = item.resId)) }
+                                            )
                                         }
-                                    )
+                                    }
                                 }
                             }
                         }

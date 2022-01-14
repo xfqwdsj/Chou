@@ -8,6 +8,6 @@
     <string name="chose_item">This item is selected</string>
     <string name="reset">Reset</string>
     <string name="chou_page">Home</string>
-    <string name="no_item">Switch to the tab \"Edit\" to add items</string>
+    <string name="no_item">Switch to the tab \"Editing\" to add items</string>
     <string name="editing_page">Editing</string>
 </resources>

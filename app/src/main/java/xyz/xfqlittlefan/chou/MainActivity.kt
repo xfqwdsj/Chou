@@ -87,7 +87,7 @@ class MainActivity : ComponentActivity() {
                                     val navBackStackEntry by navController.currentBackStackEntryAsState()
                                     val currentDestination = navBackStackEntry?.destination
                                     viewModel.screenList.forEach { item ->
-                                        AnimatedContent(targetState = viewModel.appState == 1) { targetState ->
+                                        AnimatedContent(targetState = viewModel.appState == 0) { targetState ->
                                             NavigationBarItem(
                                                 selected = currentDestination?.hierarchy?.any { it.route == item.route } == true,
                                                 onClick = {

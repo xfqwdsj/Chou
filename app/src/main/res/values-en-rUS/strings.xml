@@ -12,4 +12,5 @@
     <string name="edit">Edit</string>
     <string name="item_type_0">Text item</string>
     <string name="item_type_1">Range item</string>
+    <string name="click_to_select">Click to select</string>
 </resources>

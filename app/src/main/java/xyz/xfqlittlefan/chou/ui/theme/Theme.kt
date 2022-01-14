@@ -2,6 +2,8 @@ package xyz.xfqlittlefan.chou.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material.Colors
+import androidx.compose.material.lightColors
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
@@ -76,7 +78,26 @@ fun ChouTheme(
 
     MaterialTheme(
         colorScheme = colors,
-        typography = AppTypography,
-        content = content
-    )
+        typography = AppTypography
+    ) {
+        val material2Colors = Colors(
+            primary = MaterialTheme.colorScheme.primary,
+            primaryVariant = MaterialTheme.colorScheme.primaryContainer,
+            secondary = MaterialTheme.colorScheme.secondary,
+            secondaryVariant = MaterialTheme.colorScheme.secondaryContainer,
+            background = MaterialTheme.colorScheme.background,
+            surface = MaterialTheme.colorScheme.surface,
+            error = MaterialTheme.colorScheme.error,
+            onPrimary = MaterialTheme.colorScheme.onPrimary,
+            onSecondary = MaterialTheme.colorScheme.onSecondary,
+            onBackground = MaterialTheme.colorScheme.onBackground,
+            onSurface = MaterialTheme.colorScheme.onSurface,
+            onError = MaterialTheme.colorScheme.onError,
+            isLight = !useDarkTheme
+        )
+        androidx.compose.material.MaterialTheme(
+            colors = material2Colors,
+            content = content
+        )
+    }
 }

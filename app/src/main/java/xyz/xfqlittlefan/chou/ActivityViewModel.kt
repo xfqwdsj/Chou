@@ -52,7 +52,12 @@ class ActivityViewModel : ViewModel() {
 
     val screenList = listOf(
         Screen("home", R.string.home, Icons.Default.Home, homeScrollState) { Main(this, homeScrollState) },
-        Screen("edit", R.string.edit, Icons.Default.Edit, editScrollState) { Edit(this, editScrollState) }
+        Screen("edit", R.string.edit, Icons.Default.Edit, editScrollState) { Edit(this, editScrollState, it) }
+    )
+
+    val itemTypeList = listOf(
+        R.string.item_type_0,
+        R.string.item_type_1
     )
 
     @OptIn(DelicateCoroutinesApi::class)
@@ -106,5 +111,5 @@ class ActivityViewModel : ViewModel() {
         var value by mutableStateOf("")
     }
 
-    class Screen(val route: String, @StringRes val resId: Int, val icon: ImageVector, val state: Any, val component: @Composable () -> Unit)
+    class Screen(val route: String, @StringRes val resId: Int, val icon: ImageVector, val state: Any, val component: @Composable ((String) -> Unit) -> Unit)
 }

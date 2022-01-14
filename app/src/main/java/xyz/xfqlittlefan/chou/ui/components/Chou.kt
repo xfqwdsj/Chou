@@ -1,6 +1,5 @@
 package xyz.xfqlittlefan.chou.ui.components
 
-import android.widget.Toast
 import androidx.compose.animation.*
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -12,14 +11,13 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.DropdownMenu
+import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.TextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -27,7 +25,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
@@ -45,7 +42,7 @@ import xyz.xfqlittlefan.chou.ui.plus
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun Main(viewModel: ActivityViewModel, state: ScrollState) {
+fun Main(viewModel: ActivityViewModel, state: ScrollState/* , navigateTo: (String) -> Unit */) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -107,7 +104,11 @@ fun Main(viewModel: ActivityViewModel, state: ScrollState) {
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalAnimationApi::class)
 @Composable
-fun Edit(viewModel: ActivityViewModel, state: LazyListState) {
+fun Edit(viewModel: ActivityViewModel, state: LazyListState, navigateTo: (String) -> Unit) {
+    SideEffect {
+        if (viewModel.appState != 0) navigateTo("home")
+    }
+
     Scaffold(
         topBar = {
             val background by TopAppBarDefaults.smallTopAppBarColors().containerColor(
@@ -121,27 +122,50 @@ fun Edit(viewModel: ActivityViewModel, state: LazyListState) {
             ) {
                 AnimatedVisibility(visible = viewModel.editing != null) {
                     Column(modifier = Modifier.padding(horizontal = 10.dp)) {
+                        val menuText = stringResource(viewModel.editing?.let { viewModel.itemList[it].type } ?: R.string.app_name)
+                        var isShowingMenu by remember { mutableStateOf(false) }
+
                         Spacer(Modifier.height(5.dp))
-                        when (viewModel.editing?.let { viewModel.itemList[it].type }) {
-                            R.string.item_type_0 -> {
-                                val requester = FocusRequester()
-
-                                SideEffect {
-                                    requester.requestFocus()
+                        ButtonWithLabelAndIcon(label = menuText, icon = Icons.Default.MoreVert, contentDescription = "$menuText/${stringResource(R.string.click_to_select)}") {
+                            isShowingMenu = true
+                        }
+                        AnimatedVisibility(visible = isShowingMenu) {
+                            DropdownMenu(expanded = true, onDismissRequest = { isShowingMenu = false }) {
+                                viewModel.itemTypeList.forEach { type ->
+                                    DropdownMenuItem(
+                                        onClick = {
+                                            isShowingMenu = false
+                                            viewModel.editing?.let { viewModel.itemList[it].type = type }
+                                        }
+                                    ) {
+                                        Text(stringResource(type))
+                                    }
                                 }
+                            }
+                        }
+                        Spacer(Modifier.height(5.dp))
+                        AnimatedContent(targetState = viewModel.editing?.let { viewModel.itemList[it].type } ?: 0) {
+                            when (viewModel.editing?.let { viewModel.itemList[it].type }) {
+                                R.string.item_type_0 -> {
+                                    val requester = FocusRequester()
 
-                                Box(
-                                    modifier = Modifier.clip(shape = RoundedCornerShape(size = 10.dp))
-                                ) {
-                                    TextField(
-                                        value = viewModel.editingValue,
-                                        onValueChange = {
-                                            viewModel.editingValue = it
-                                        },
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .focusRequester(requester)
-                                    )
+                                    SideEffect {
+                                        requester.requestFocus()
+                                    }
+
+                                    Box(
+                                        modifier = Modifier.clip(shape = RoundedCornerShape(size = 10.dp))
+                                    ) {
+                                        TextField(
+                                            value = viewModel.editingValue,
+                                            onValueChange = {
+                                                viewModel.editingValue = it
+                                            },
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .focusRequester(requester)
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -149,10 +173,10 @@ fun Edit(viewModel: ActivityViewModel, state: LazyListState) {
                         FlowRow(
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            ButtonWithIcon(label = stringResource(id = android.R.string.cancel), icon = Icons.Default.Close) {
+                            ButtonWithIconAndLabel(label = stringResource(id = android.R.string.cancel), icon = Icons.Default.Close) {
                                 viewModel.editing = null
                             }
-                            ButtonWithIcon(label = stringResource(id = android.R.string.ok), icon = Icons.Default.Done) {
+                            ButtonWithIconAndLabel(label = stringResource(id = android.R.string.ok), icon = Icons.Default.Done) {
                                 viewModel.itemList[viewModel.editing ?: 0].value = viewModel.editingValue.text
                                 viewModel.editing = null
                             }
@@ -210,13 +234,13 @@ fun Edit(viewModel: ActivityViewModel, state: LazyListState) {
                         }
                         Spacer(Modifier.width(10.dp))
                         FlowRow {
-                            ButtonWithIcon(label = stringResource(id = R.string.add_item), icon = Icons.Default.Add) {
+                            ButtonWithIconAndLabel(label = stringResource(id = R.string.add_item), icon = Icons.Default.Add) {
                                 viewModel.addItem(index + 1)
                             }
-                            ButtonWithIcon(label = stringResource(id = R.string.remove_item), icon = Icons.Default.Delete) {
+                            ButtonWithIconAndLabel(label = stringResource(id = R.string.remove_item), icon = Icons.Default.Delete) {
                                 viewModel.removeItem(index)
                             }
-                            ButtonWithIcon(label = stringResource(id = R.string.edit_item), icon = Icons.Default.Edit) {
+                            ButtonWithIconAndLabel(label = stringResource(id = R.string.edit_item), icon = Icons.Default.Edit) {
                                 viewModel.editing = index
                                 val initValue = viewModel.editing?.let { viewModel.itemList[it].value } ?: ""
                                 viewModel.editingValue = TextFieldValue(
@@ -233,13 +257,25 @@ fun Edit(viewModel: ActivityViewModel, state: LazyListState) {
 }
 
 @Composable
-fun ButtonWithIcon(label: String, icon: ImageVector, onClick: () -> Unit) {
+fun ButtonWithIconAndLabel(label: String, icon: ImageVector, contentDescription: String? = null, onClick: () -> Unit) {
     TextButton(
         onClick = onClick,
         modifier = Modifier.padding(5.dp)
     ) {
-        Icon(imageVector = icon, contentDescription = label)
+        Icon(imageVector = icon, contentDescription = contentDescription ?: label)
         Spacer(Modifier.width(ButtonDefaults.IconSpacing))
         Text(label)
+    }
+}
+
+@Composable
+fun ButtonWithLabelAndIcon(label: String, icon: ImageVector, contentDescription: String? = null, onClick: () -> Unit) {
+    TextButton(
+        onClick = onClick,
+        modifier = Modifier.padding(5.dp)
+    ) {
+        Text(label)
+        Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+        Icon(imageVector = icon, contentDescription = contentDescription ?: label)
     }
 }

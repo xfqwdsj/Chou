@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -74,11 +75,11 @@ class MainActivity : ComponentActivity() {
                             )
                         },
                         bottomBar = {
-                            //AnimatedVisibility(
-                            //    visible = viewModel.appState == 0,
-                            //    enter = expandVertically { it },
-                            //    exit = shrinkVertically { it }
-                            //) {
+                            AnimatedVisibility(
+                                visible = viewModel.appState == 0,
+                                enter = expandVertically(expandFrom = Alignment.Top),
+                                exit = shrinkVertically(shrinkTowards = Alignment.Top)
+                            ) {
                                 ChouNavigationBar(
                                     modifier = Modifier
                                         .systemBarsPadding(top = false)
@@ -104,7 +105,7 @@ class MainActivity : ComponentActivity() {
                                         )
                                     }
                                 }
-                            //}
+                            }
                         }
                     ) { innerPadding ->
                         NavHost(navController = navController, startDestination = viewModel.screenList[0].route, modifier = Modifier.padding(innerPadding)) {
@@ -114,7 +115,15 @@ class MainActivity : ComponentActivity() {
                                         viewModel.currentScrollState = item.state
                                     }
 
-                                    item.component()
+                                    item.component {
+                                        navController.navigate(it) {
+                                            popUpTo(navController.graph.findStartDestination().id) {
+                                                saveState = true
+                                            }
+                                            launchSingleTop = true
+                                            restoreState = true
+                                        }
+                                    }
                                 }
                             }
                         }

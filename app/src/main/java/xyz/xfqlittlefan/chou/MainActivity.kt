@@ -76,8 +76,8 @@ class MainActivity : ComponentActivity() {
                         bottomBar = {
                             AnimatedVisibility(
                                 visible = viewModel.appState == 0,
-                                enter = expandVertically { it },
-                                exit = shrinkVertically { it }
+                                //enter = expandVertically { it },
+                                //exit = shrinkVertically { it }
                             ) {
                                 ChouNavigationBar(
                                     modifier = Modifier
@@ -99,7 +99,7 @@ class MainActivity : ComponentActivity() {
                                                 }
                                             },
                                             icon = { Icon(imageVector = item.icon, contentDescription = stringResource(id = item.resId)) },
-                                            //enabled = viewModel.appState == 0,
+                                            enabled = viewModel.appState == 0,
                                             label = { Text(stringResource(id = item.resId)) }
                                         )
                                     }

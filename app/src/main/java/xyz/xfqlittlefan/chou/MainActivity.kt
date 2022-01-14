@@ -79,31 +79,29 @@ class MainActivity : ComponentActivity() {
                                 enter = expandVertically { it },
                                 exit = shrinkVertically { it }
                             ) {
-                                AnimatedContent(targetState = viewModel.appState == 0) { targetState ->
-                                    ChouNavigationBar(
-                                        modifier = Modifier
-                                            .systemBarsPadding(top = false)
-                                            .cutoutPadding(top = false, bottom = false)
-                                    ) {
-                                        val navBackStackEntry by navController.currentBackStackEntryAsState()
-                                        val currentDestination = navBackStackEntry?.destination
-                                        viewModel.screenList.forEach { item ->
-                                            NavigationBarItem(
-                                                selected = currentDestination?.hierarchy?.any { it.route == item.route } == true,
-                                                onClick = {
-                                                    navController.navigate(item.route) {
-                                                        popUpTo(navController.graph.findStartDestination().id) {
-                                                            saveState = true
-                                                        }
-                                                        launchSingleTop = true
-                                                        restoreState = true
+                                ChouNavigationBar(
+                                    modifier = Modifier
+                                        .systemBarsPadding(top = false)
+                                        .cutoutPadding(top = false, bottom = false)
+                                ) {
+                                    val navBackStackEntry by navController.currentBackStackEntryAsState()
+                                    val currentDestination = navBackStackEntry?.destination
+                                    viewModel.screenList.forEach { item ->
+                                        NavigationBarItem(
+                                            selected = currentDestination?.hierarchy?.any { it.route == item.route } == true,
+                                            onClick = {
+                                                navController.navigate(item.route) {
+                                                    popUpTo(navController.graph.findStartDestination().id) {
+                                                        saveState = true
                                                     }
-                                                },
-                                                icon = { Icon(imageVector = item.icon, contentDescription = stringResource(id = item.resId)) },
-                                                enabled = targetState,
-                                                label = { Text(stringResource(id = item.resId)) }
-                                            )
-                                        }
+                                                    launchSingleTop = true
+                                                    restoreState = true
+                                                }
+                                            },
+                                            icon = { Icon(imageVector = item.icon, contentDescription = stringResource(id = item.resId)) },
+                                            enabled = viewModel.appState == 0,
+                                            label = { Text(stringResource(id = item.resId)) }
+                                        )
                                     }
                                 }
                             }

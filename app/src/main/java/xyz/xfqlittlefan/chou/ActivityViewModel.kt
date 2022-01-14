@@ -13,7 +13,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -59,6 +58,7 @@ class ActivityViewModel : ViewModel() {
     @OptIn(DelicateCoroutinesApi::class)
     fun addItem(position: Int) {
         GlobalScope.launch {
+            if (editing != null && position <= editing ?: -1) editing = (editing ?: -1) + 1
             itemList = itemList.toMutableList().apply { add(position, Item()) }
         }
     }
@@ -66,12 +66,15 @@ class ActivityViewModel : ViewModel() {
     @OptIn(DelicateCoroutinesApi::class)
     fun removeItem(position: Int) {
         GlobalScope.launch {
+            if (editing == position) editing = null
+            if (editing != null && position < editing ?: 0) editing = (editing ?: 1) - 1
             itemList = itemList.toMutableList().apply { removeAt(position) }
         }
     }
 
     @OptIn(DelicateCoroutinesApi::class)
     fun startSelecting() {
+        editing = null
         appState = 1
         val time = ((4 - (10 / (itemList.size + 2.5))) * 1000).toLong()
         val job = GlobalScope.launch {

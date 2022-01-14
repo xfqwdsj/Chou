@@ -133,11 +133,9 @@ fun Edit(viewModel: ActivityViewModel, state: LazyListState) {
                                 Box(
                                     modifier = Modifier.clip(shape = RoundedCornerShape(size = 10.dp))
                                 ) {
-                                    val context = LocalContext.current
                                     TextField(
                                         value = viewModel.editingValue,
                                         onValueChange = {
-                                            Toast.makeText(context, "${viewModel.editingValue}\n$it", Toast.LENGTH_LONG).show()
                                             viewModel.editingValue = it
                                         },
                                         modifier = Modifier
@@ -155,7 +153,7 @@ fun Edit(viewModel: ActivityViewModel, state: LazyListState) {
                                 viewModel.editing = null
                             }
                             ButtonWithIcon(label = stringResource(id = android.R.string.ok), icon = Icons.Default.Done) {
-                                viewModel.itemList[viewModel.editing!!].value = viewModel.editingValue.text
+                                viewModel.itemList[viewModel.editing ?: 0].value = viewModel.editingValue.text
                                 viewModel.editing = null
                             }
                         }
@@ -163,9 +161,7 @@ fun Edit(viewModel: ActivityViewModel, state: LazyListState) {
                 }
                 Spacer(Modifier.height(5.dp))
                 TextButton(
-                    onClick = {
-                        viewModel.addItem(0)
-                    },
+                    onClick = { viewModel.addItem(0) },
                     modifier = Modifier
                         .padding(horizontal = 10.dp)
                         .fillMaxWidth(),
@@ -205,7 +201,7 @@ fun Edit(viewModel: ActivityViewModel, state: LazyListState) {
                         CompositionLocalProvider(LocalContentColor provides LocalContentColor.current.copy(alpha = 0.38f)) {
                             Text(text = stringResource(id = item.type))
                         }
-                        Spacer(Modifier.width(10.dp))
+                        Spacer(Modifier.width(20.dp))
                         AnimatedContent(
                             targetState = item.value,
                             transitionSpec = { fadeIn() with fadeOut() }
@@ -220,16 +216,13 @@ fun Edit(viewModel: ActivityViewModel, state: LazyListState) {
                             ButtonWithIcon(label = stringResource(id = R.string.remove_item), icon = Icons.Default.Delete) {
                                 viewModel.removeItem(index)
                             }
-                            val context = LocalContext.current
                             ButtonWithIcon(label = stringResource(id = R.string.edit_item), icon = Icons.Default.Edit) {
                                 viewModel.editing = index
                                 val initValue = viewModel.editing?.let { viewModel.itemList[it].value } ?: ""
-                                Toast.makeText(context, "${viewModel.editingValue}", Toast.LENGTH_LONG).show()
                                 viewModel.editingValue = TextFieldValue(
                                     text = initValue,
                                     selection = TextRange(index = initValue.length)
                                 )
-                                Toast.makeText(context, "${viewModel.editingValue}", Toast.LENGTH_LONG).show()
                             }
                         }
                     }

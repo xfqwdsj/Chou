@@ -74,8 +74,8 @@ class ActivityViewModel : ViewModel() {
 
     @OptIn(DelicateCoroutinesApi::class)
     fun startSelecting() {
-        editing = null
         appState = 1
+        editing = null
         val time = ((4 - (10 / (itemList.size + 2.5))) * 1000).toLong()
         val job = GlobalScope.launch {
             while (true) {

@@ -7,7 +7,9 @@
     <string name="remove_item">Delete item</string>
     <string name="chose_item">This item is selected</string>
     <string name="reset">Reset</string>
-    <string name="chou_page">Home</string>
-    <string name="no_item">Switch to the tab \"Editing\" to add items</string>
-    <string name="editing_page">Editing</string>
+    <string name="home">Home</string>
+    <string name="no_item">Switch to the tab \"Edit\" to add items</string>
+    <string name="edit">Edit</string>
+    <string name="item_type_0">Text item</string>
+    <string name="item_type_1">Range item</string>
 </resources>

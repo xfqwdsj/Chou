@@ -4,8 +4,8 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -13,6 +13,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
@@ -23,7 +25,7 @@ import xyz.xfqlittlefan.chou.ui.components.Main
 
 class ActivityViewModel : ViewModel() {
     private val homeScrollState = ScrollState(0)
-    private var editingScrollState = LazyListState()
+    private var editScrollState = LazyListState()
     var currentScrollState: Any by mutableStateOf(homeScrollState)
 
     private val offset
@@ -46,11 +48,12 @@ class ActivityViewModel : ViewModel() {
 
     var currentItem by mutableStateOf(0)
 
-    var isEditing: Int? by mutableStateOf(null)
+    var editing: Int? by mutableStateOf(null)
+    var editingValue by mutableStateOf(TextFieldValue(text = "initValue"))
 
     val screenList = listOf(
-        Screen("home", R.string.chou_page, Icons.Default.Home, homeScrollState) { Main(this, homeScrollState) },
-        Screen("editing", R.string.editing_page, Icons.Default.Settings, editingScrollState) { Edit(this, editingScrollState) }
+        Screen("home", R.string.home, Icons.Default.Home, homeScrollState) { Main(this, homeScrollState) },
+        Screen("edit", R.string.edit, Icons.Default.Edit, editScrollState) { Edit(this, editScrollState) }
     )
 
     @OptIn(DelicateCoroutinesApi::class)
@@ -70,7 +73,7 @@ class ActivityViewModel : ViewModel() {
     @OptIn(DelicateCoroutinesApi::class)
     fun startSelecting() {
         appState = 1
-        val time = (4 - (10 / (itemList.size + 2.5))).toLong()
+        val time = ((4 - (10 / (itemList.size + 2.5))) * 1000).toLong()
         val job = GlobalScope.launch {
             while (true) {
                 if (itemList.size >= 6) {
@@ -90,12 +93,14 @@ class ActivityViewModel : ViewModel() {
     }
 
     fun resetState() {
-        editingScrollState = LazyListState()
+        editScrollState = LazyListState()
         appState = 0
         currentItem = 0
     }
 
     class Item {
+        // 0: 文字  1: 范围
+        var type by mutableStateOf(R.string.item_type_0)
         var value by mutableStateOf("")
     }
 

@@ -1,11 +1,19 @@
 package xyz.xfqlittlefan.chou.ui.theme
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import xyz.xfqlittlefan.chou.R
+
 //Replace with your font locations
-val Roboto = FontFamily.Default
+val Roboto = FontFamily(
+	Font(R.font.misans_regular),
+	Font(R.font.misans_light, FontWeight.Light),
+	Font(R.font.misans_medium, FontWeight.Medium),
+	Font(R.font.misans_semibold, FontWeight.SemiBold)
+)
 
 val AppTypography = Typography(
 	displayLarge = TextStyle(

@@ -76,8 +76,8 @@ class MainActivity : ComponentActivity() {
                         bottomBar = {
                             AnimatedVisibility(
                                 visible = viewModel.appState == 0,
-                                enter = slideInVertically { it },
-                                exit = slideOutVertically { it }
+                                enter = expandVertically { it },
+                                exit = shrinkVertically { it }
                             ) {
                                 AnimatedContent(targetState = viewModel.appState == 0) { targetState ->
                                     ChouNavigationBar(

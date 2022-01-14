@@ -1,6 +1,7 @@
 package xyz.xfqlittlefan.chou.ui.components
 
 import androidx.compose.animation.*
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
@@ -14,18 +15,24 @@ import androidx.compose.material.TextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.google.accompanist.flowlayout.FlowRow
 import com.google.accompanist.insets.LocalWindowInsets
 import com.google.accompanist.insets.cutoutPadding
 import com.google.accompanist.insets.rememberInsetsPaddingValues
@@ -44,14 +51,16 @@ fun Main(viewModel: ActivityViewModel, state: ScrollState) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(50.dp))
+        Spacer(Modifier.height(50.dp))
         AnimatedContent(
             targetState = viewModel.itemList.isNotEmpty(),
             transitionSpec = { fadeIn() with fadeOut() }
         ) { visible ->
-            Column(modifier = Modifier
-                .systemBarsPadding(top = false, bottom = false)
-                .cutoutPadding(top = false, bottom = false), horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                modifier = Modifier
+                    .systemBarsPadding(top = false, bottom = false)
+                    .cutoutPadding(top = false, bottom = false), horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 if (visible) {
                     AnimatedContent(
                         targetState = viewModel.appState,
@@ -90,7 +99,7 @@ fun Main(viewModel: ActivityViewModel, state: ScrollState) {
                 }
             }
         }
-        Spacer(modifier = Modifier.height(50.dp))
+        Spacer(Modifier.height(50.dp))
     }
 }
 
@@ -108,58 +117,50 @@ fun Edit(viewModel: ActivityViewModel, state: LazyListState) {
                     .systemBarsPadding(top = false, bottom = false)
                     .cutoutPadding(top = false, bottom = false)
             ) {
-                AnimatedVisibility(visible = viewModel.isEditing != null) {
-                    val requester = FocusRequester()
-                    val initValue = viewModel.isEditing?.let { viewModel.itemList[it].value } ?: ""
-                    var value by remember {
-                        mutableStateOf(
-                            TextFieldValue(
-                                text = initValue,
-                                selection = TextRange(index = initValue.length)
-                            )
-                        )
-                    }
-
-                    SideEffect {
-                        requester.requestFocus()
-                    }
-
-                    Column {
-                        Spacer(modifier = Modifier.height(5.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .clip(shape = RoundedCornerShape(size = 10.dp))
-                            ) {
-                                TextField(
-                                    value = value,
-                                    onValueChange = { value = it },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .focusRequester(requester)
+                AnimatedVisibility(visible = viewModel.editing != null) {
+                    Column(modifier = Modifier.padding(horizontal = 10.dp)) {
+                        Spacer(Modifier.height(5.dp))
+                        when (viewModel.editing?.let { viewModel.itemList[it].type }) {
+                            0 -> {
+                                val requester = FocusRequester()
+                                val initValue = viewModel.editing?.let { viewModel.itemList[it].value } ?: ""
+                                viewModel.editingValue = TextFieldValue(
+                                    text = initValue,
+                                    selection = TextRange(index = initValue.length)
                                 )
+
+                                SideEffect {
+                                    requester.requestFocus()
+                                }
+
+                                Box(
+                                    modifier = Modifier.clip(shape = RoundedCornerShape(size = 10.dp))
+                                ) {
+                                    TextField(
+                                        value = viewModel.editingValue,
+                                        onValueChange = { viewModel.editingValue = it },
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .focusRequester(requester)
+                                    )
+                                }
                             }
-                            Spacer(modifier = Modifier.width(10.dp))
-                            IconButton(onClick = { viewModel.isEditing = null }) {
-                                Icon(imageVector = Icons.Filled.Close, contentDescription = stringResource(id = android.R.string.cancel))
+                        }
+                        Spacer(Modifier.width(10.dp))
+                        FlowRow(
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            ButtonWithIcon(label = stringResource(id = android.R.string.cancel), icon = Icons.Default.Close) {
+                                viewModel.editing = null
                             }
-                            Spacer(modifier = Modifier.width(10.dp))
-                            IconButton(onClick = {
-                                viewModel.itemList[viewModel.isEditing!!].value = value.text
-                                viewModel.isEditing = null
-                            }) {
-                                Icon(imageVector = Icons.Filled.Done, contentDescription = stringResource(id = android.R.string.ok))
+                            ButtonWithIcon(label = stringResource(id = android.R.string.ok), icon = Icons.Default.Done) {
+                                viewModel.itemList[viewModel.editing!!].value = viewModel.editingValue.text
+                                viewModel.editing = null
                             }
-                            Spacer(modifier = Modifier.width(10.dp))
                         }
                     }
                 }
-                Spacer(modifier = Modifier.height(5.dp))
+                Spacer(Modifier.height(5.dp))
                 TextButton(
                     onClick = {
                         viewModel.addItem(0)
@@ -176,59 +177,67 @@ fun Edit(viewModel: ActivityViewModel, state: LazyListState) {
             }
         }
     ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize(),
-            state = state,
-            contentPadding = rememberInsetsPaddingValues(insets = LocalWindowInsets.current.systemBars, applyTop = false, applyBottom = false)
-                .plus(rememberInsetsPaddingValues(insets = LocalWindowInsets.current.displayCutout, applyTop = false, applyBottom = false), LocalLayoutDirection.current)
-        ) {
-            itemsIndexed(items = viewModel.itemList, key = { _, item -> item.toString() }) { index, item ->
-                Surface(
-                    modifier = Modifier
-                        .padding(horizontal = 10.dp, vertical = 5.dp)
-                        .fillMaxWidth()
-                        .animateItemPlacement(),
-                    shape = RoundedCornerShape(10.dp),
-                    tonalElevation = 4.dp
-                ) {
-                    Row(
+        val radius by animateDpAsState(targetValue = if (viewModel.editing != null) 10.dp else 0.dp)
+            LazyColumn(
+                modifier = Modifier
+                    .padding(padding)
+                    .fillMaxSize()
+                    .blur(radius),
+                state = state,
+                contentPadding = rememberInsetsPaddingValues(insets = LocalWindowInsets.current.systemBars, applyTop = false, applyBottom = false)
+                    .plus(rememberInsetsPaddingValues(insets = LocalWindowInsets.current.displayCutout, applyTop = false, applyBottom = false), LocalLayoutDirection.current)
+            ) {
+                itemsIndexed(items = viewModel.itemList, key = { _, item -> item.toString() }) { index, item ->
+                    Surface(
                         modifier = Modifier
+                            .padding(horizontal = 10.dp, vertical = 5.dp)
                             .fillMaxWidth()
-                            .padding(20.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                            .animateItemPlacement(),
+                        shape = RoundedCornerShape(10.dp),
+                        tonalElevation = 4.dp
                     ) {
-                        AnimatedContent(
-                            targetState = item.value,
-                            modifier = Modifier.weight(1f),
-                            transitionSpec = { fadeIn() with fadeOut() }
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(20.dp)
                         ) {
-                            Text(text = it)
-                        }
-                        Spacer(modifier = Modifier.width(20.dp))
-                        Row {
-                            IconButton(
-                                onClick = { viewModel.addItem(index + 1) }
-                            ) {
-                                Icon(imageVector = Icons.Filled.Add, contentDescription = stringResource(id = R.string.add_item))
+                            CompositionLocalProvider(LocalContentColor provides LocalContentColor.current.copy(alpha = 0.38f)) {
+                                Text(text = stringResource(id = item.type))
                             }
-                            Spacer(modifier = Modifier.width(10.dp))
-                            IconButton(
-                                onClick = { viewModel.removeItem(index) }
+                            Spacer(Modifier.width(10.dp))
+                            AnimatedContent(
+                                targetState = item.value,
+                                transitionSpec = { fadeIn() with fadeOut() }
                             ) {
-                                Icon(imageVector = Icons.Filled.Delete, contentDescription = stringResource(id = R.string.remove_item))
+                                Text(text = it)
                             }
-                            Spacer(modifier = Modifier.width(10.dp))
-                            IconButton(
-                                onClick = { viewModel.isEditing = index }
-                            ) {
-                                Icon(imageVector = Icons.Filled.Edit, contentDescription = stringResource(id = R.string.edit_item))
+                            Spacer(Modifier.width(10.dp))
+                            FlowRow {
+                                ButtonWithIcon(label = stringResource(id = R.string.add_item), icon = Icons.Default.Add) {
+                                    viewModel.addItem(index + 1)
+                                }
+                                ButtonWithIcon(label = stringResource(id = R.string.remove_item), icon = Icons.Default.Delete) {
+                                    viewModel.removeItem(index)
+                                }
+                                ButtonWithIcon(label = stringResource(id = R.string.edit_item), icon = Icons.Default.Edit) {
+                                    viewModel.editing = index
+                                }
                             }
                         }
                     }
                 }
             }
-        }
+    }
+}
+
+@Composable
+fun ButtonWithIcon(label: String, icon: ImageVector, onClick: () -> Unit) {
+    TextButton(
+        onClick = onClick,
+        modifier = Modifier.padding(5.dp)
+    ) {
+        Icon(imageVector = icon, contentDescription = label)
+        Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+        Text(label)
     }
 }

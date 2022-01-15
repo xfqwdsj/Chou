@@ -255,7 +255,7 @@ fun Edit(viewModel: ActivityViewModel, state: LazyListState, navigateTo: (String
                                 )
                             }
                         }
-                        Spacer(Modifier.height(20.dp))
+                        Spacer(Modifier.height(10.dp))
                     }
                 }
             }

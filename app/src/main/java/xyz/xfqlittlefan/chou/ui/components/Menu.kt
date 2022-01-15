@@ -45,7 +45,7 @@ fun ChouDropdownMenu(
     if (expanded) {
         var visible by remember { mutableStateOf(false) }
 
-        SideEffect {
+        LaunchedEffect(Unit) {
             visible = true
         }
 

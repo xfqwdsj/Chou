@@ -114,6 +114,8 @@ fun Edit(viewModel: ActivityViewModel, state: LazyListState, navigateTo: (String
             Column(
                 modifier = Modifier
                     .background(color = background)
+                    .fillMaxWidth()
+                    .wrapContentHeight()
                     .verticalScroll(rememberScrollState())
                     .systemBarsPadding(top = false, bottom = false)
                     .cutoutPadding(top = false, bottom = false)

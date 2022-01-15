@@ -223,7 +223,12 @@ fun Edit(viewModel: ActivityViewModel, state: LazyListState, navigateTo: (String
                     ) {
                         Spacer(Modifier.height(20.dp))
                         CompositionLocalProvider(LocalContentColor provides LocalContentColor.current.copy(alpha = 0.38f)) {
-                            Text(text = "${index + 1}. ${stringResource(id = item.type)}", modifier = Modifier.padding(horizontal = 20.dp))
+                            AnimatedContent(
+                                targetState = "${index + 1}. ${stringResource(id = item.type)}",
+                                transitionSpec = { fadeIn() with fadeOut() }
+                            ) {
+                                Text(text = it, modifier = Modifier.padding(horizontal = 20.dp))
+                            }
                         }
                         Spacer(Modifier.height(5.dp))
                         AnimatedContent(

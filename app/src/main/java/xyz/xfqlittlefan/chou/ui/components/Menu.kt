@@ -16,9 +16,9 @@
 
 package xyz.xfqlittlefan.chou.ui.components
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandIn
-import androidx.compose.animation.shrinkOut
+import androidx.compose.animation.*
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -54,16 +54,12 @@ fun ChouDropdownMenu(
             popupPositionProvider = DropdownMenuPositionProvider(offset, LocalDensity.current),
             properties = properties
         ) {
-            AnimatedVisibility(
-                visible = visible,
-                enter = expandIn(),
-                exit = shrinkOut()
-            ) {
                 ChouDropdownMenuContent(
+                    visible = visible,
                     modifier = modifier,
                     content = content
                 )
-            }
+
         }
     }
 }
@@ -71,6 +67,7 @@ fun ChouDropdownMenu(
 @Suppress("ModifierParameter")
 @Composable
 internal fun ChouDropdownMenuContent(
+    visible: Boolean,
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit
 ) {
@@ -79,13 +76,19 @@ internal fun ChouDropdownMenuContent(
         tonalElevation = MenuElevation,
         shadowElevation = MenuElevation
     ) {
-        Column(
-            modifier = modifier
-                .padding(vertical = DropdownMenuVerticalPadding)
-                .width(IntrinsicSize.Max)
-                .verticalScroll(rememberScrollState()),
-            content = content
-        )
+        AnimatedVisibility(
+            visible = visible,
+            enter = fadeIn() + expandIn(animationSpec = spring()),
+            exit = shrinkOut(animationSpec = spring()) + fadeOut()
+        ) {
+            Column(
+                modifier = modifier
+                    .padding(vertical = DropdownMenuVerticalPadding)
+                    .width(IntrinsicSize.Max)
+                    .verticalScroll(rememberScrollState()),
+                content = content
+            )
+        }
     }
 }
 

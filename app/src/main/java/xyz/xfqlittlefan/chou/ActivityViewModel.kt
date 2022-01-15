@@ -47,7 +47,8 @@ class ActivityViewModel : ViewModel() {
 
     var currentItem by mutableStateOf(0)
 
-    var editing: Int? by mutableStateOf(null)
+    var isEditing by mutableStateOf(false)
+    var editingItem by mutableStateOf(-1)
     var editingValue by mutableStateOf(TextFieldValue(text = ""))
 
     val screenList = listOf(
@@ -63,7 +64,7 @@ class ActivityViewModel : ViewModel() {
     @OptIn(DelicateCoroutinesApi::class)
     fun addItem(position: Int) {
         GlobalScope.launch {
-            if (editing != null && position <= editing ?: -1) editing = (editing ?: -1) + 1
+            if (isEditing && position <= editingItem) editingItem++
             itemList = itemList.toMutableList().apply { add(position, Item()) }
         }
     }
@@ -71,8 +72,8 @@ class ActivityViewModel : ViewModel() {
     @OptIn(DelicateCoroutinesApi::class)
     fun removeItem(position: Int) {
         GlobalScope.launch {
-            if (editing == position) editing = null
-            if (editing != null && position < editing ?: 0) editing = (editing ?: 1) - 1
+            if (editingItem == position) isEditing = false
+            if (isEditing && position < editingItem) editingItem--
             itemList = itemList.toMutableList().apply { removeAt(position) }
         }
     }
@@ -80,7 +81,7 @@ class ActivityViewModel : ViewModel() {
     @OptIn(DelicateCoroutinesApi::class)
     fun startSelecting() {
         appState = 1
-        editing = null
+        isEditing = false
         val time = ((4 - (10 / (itemList.size + 2.5))) * 1000).toLong()
         val job = GlobalScope.launch {
             while (true) {

@@ -11,7 +11,6 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.DropdownMenu
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.TextField
 import androidx.compose.material.icons.Icons
@@ -120,32 +119,33 @@ fun Edit(viewModel: ActivityViewModel, state: LazyListState, navigateTo: (String
                     .systemBarsPadding(top = false, bottom = false)
                     .cutoutPadding(top = false, bottom = false)
             ) {
-                AnimatedVisibility(visible = viewModel.editing != null) {
+                AnimatedVisibility(visible = viewModel.isEditing) {
                     Column(modifier = Modifier.padding(horizontal = 10.dp)) {
-                        val menuText = stringResource(viewModel.editing?.let { viewModel.itemList[it].type } ?: R.string.app_name)
+                        val menuText = stringResource(viewModel.itemList[viewModel.editingItem].type)
                         var isShowingMenu by remember { mutableStateOf(false) }
 
                         Spacer(Modifier.height(5.dp))
                         ButtonWithLabelAndIcon(label = menuText, icon = Icons.Default.MoreVert, contentDescription = "$menuText/${stringResource(R.string.click_to_select)}") {
                             isShowingMenu = true
                         }
-                        AnimatedVisibility(visible = isShowingMenu) {
-                            DropdownMenu(expanded = true, onDismissRequest = { isShowingMenu = false }) {
-                                viewModel.itemTypeList.forEach { type ->
-                                    DropdownMenuItem(
-                                        onClick = {
-                                            isShowingMenu = false
-                                            viewModel.editing?.let { viewModel.itemList[it].type = type }
-                                        }
-                                    ) {
-                                        Text(stringResource(type))
+                        ChouDropdownMenu(expanded = isShowingMenu, onDismissRequest = { isShowingMenu = false }) {
+                            viewModel.itemTypeList.forEach { type ->
+                                DropdownMenuItem(
+                                    onClick = {
+                                        isShowingMenu = false
+                                        viewModel.itemList[viewModel.editingItem].type = type
                                     }
+                                ) {
+                                    Text(stringResource(type))
                                 }
                             }
                         }
                         Spacer(Modifier.height(5.dp))
-                        AnimatedContent(targetState = viewModel.editing?.let { viewModel.itemList[it].type } ?: 0) {
-                            when (viewModel.editing?.let { viewModel.itemList[it].type }) {
+                        AnimatedContent(
+                            targetState = viewModel.itemList[viewModel.editingItem].type,
+                            transitionSpec = { fadeIn() with fadeOut() }
+                        ) { type ->
+                            when (type) {
                                 R.string.item_type_0 -> {
                                     val requester = FocusRequester()
 
@@ -174,11 +174,11 @@ fun Edit(viewModel: ActivityViewModel, state: LazyListState, navigateTo: (String
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             ButtonWithIconAndLabel(label = stringResource(id = android.R.string.cancel), icon = Icons.Default.Close) {
-                                viewModel.editing = null
+                                viewModel.isEditing = false
                             }
                             ButtonWithIconAndLabel(label = stringResource(id = android.R.string.ok), icon = Icons.Default.Done) {
-                                viewModel.itemList[viewModel.editing ?: 0].value = viewModel.editingValue.text
-                                viewModel.editing = null
+                                viewModel.itemList[viewModel.editingItem].value = viewModel.editingValue.text
+                                viewModel.isEditing = false
                             }
                         }
                     }
@@ -198,12 +198,12 @@ fun Edit(viewModel: ActivityViewModel, state: LazyListState, navigateTo: (String
             }
         }
     ) { padding ->
-        val radius by animateDpAsState(targetValue = if (viewModel.editing != null) 10.dp else 0.dp)
+        val radius by animateDpAsState(targetValue = if (viewModel.isEditing) 10.dp else 0.dp)
         LazyColumn(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
-                .let { if (radius > 0.dp) it.blur(radius) else it },
+                .blur(radius),
             state = state,
             contentPadding = rememberInsetsPaddingValues(insets = LocalWindowInsets.current.systemBars, applyTop = false, applyBottom = false)
                 .plus(rememberInsetsPaddingValues(insets = LocalWindowInsets.current.displayCutout, applyTop = false, applyBottom = false), LocalLayoutDirection.current)
@@ -220,20 +220,20 @@ fun Edit(viewModel: ActivityViewModel, state: LazyListState, navigateTo: (String
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(20.dp)
                     ) {
+                        Spacer(Modifier.height(20.dp))
                         CompositionLocalProvider(LocalContentColor provides LocalContentColor.current.copy(alpha = 0.38f)) {
-                            Text(text = stringResource(id = item.type))
+                            Text(text = "${index + 1}. ${stringResource(id = item.type)}", modifier = Modifier.padding(horizontal = 20.dp))
                         }
-                        Spacer(Modifier.width(20.dp))
+                        Spacer(Modifier.height(5.dp))
                         AnimatedContent(
                             targetState = item.value,
                             transitionSpec = { fadeIn() with fadeOut() }
                         ) {
-                            Text(text = it)
+                            Text(text = it, modifier = Modifier.padding(horizontal = 20.dp))
                         }
-                        Spacer(Modifier.width(10.dp))
-                        FlowRow {
+                        Spacer(Modifier.height(10.dp))
+                        FlowRow(modifier = Modifier.padding(horizontal = 10.dp)) {
                             ButtonWithIconAndLabel(label = stringResource(id = R.string.add_item), icon = Icons.Default.Add) {
                                 viewModel.addItem(index + 1)
                             }
@@ -241,14 +241,15 @@ fun Edit(viewModel: ActivityViewModel, state: LazyListState, navigateTo: (String
                                 viewModel.removeItem(index)
                             }
                             ButtonWithIconAndLabel(label = stringResource(id = R.string.edit_item), icon = Icons.Default.Edit) {
-                                viewModel.editing = index
-                                val initValue = viewModel.editing?.let { viewModel.itemList[it].value } ?: ""
+                                viewModel.editingItem = index
+                                val initValue = viewModel.itemList[viewModel.editingItem].value
                                 viewModel.editingValue = TextFieldValue(
                                     text = initValue,
                                     selection = TextRange(index = initValue.length)
                                 )
                             }
                         }
+                        Spacer(Modifier.height(20.dp))
                     }
                 }
             }
@@ -256,26 +257,48 @@ fun Edit(viewModel: ActivityViewModel, state: LazyListState, navigateTo: (String
     }
 }
 
+@ExperimentalAnimationApi
 @Composable
 fun ButtonWithIconAndLabel(label: String, icon: ImageVector, contentDescription: String? = null, onClick: () -> Unit) {
     TextButton(
         onClick = onClick,
         modifier = Modifier.padding(5.dp)
     ) {
-        Icon(imageVector = icon, contentDescription = contentDescription ?: label)
+        AnimatedContent(
+            targetState = icon,
+            transitionSpec = { fadeIn() with fadeOut() }
+        ) {
+            Icon(imageVector = it, contentDescription = contentDescription ?: label)
+        }
         Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-        Text(label)
+        AnimatedContent(
+            targetState = label,
+            transitionSpec = { fadeIn() with fadeOut() }
+        ) {
+            Text(it)
+        }
     }
 }
 
+@ExperimentalAnimationApi
 @Composable
 fun ButtonWithLabelAndIcon(label: String, icon: ImageVector, contentDescription: String? = null, onClick: () -> Unit) {
     TextButton(
         onClick = onClick,
         modifier = Modifier.padding(5.dp)
     ) {
-        Text(label)
+        AnimatedContent(
+            targetState = label,
+            transitionSpec = { fadeIn() with fadeOut() }
+        ) {
+            Text(it)
+        }
         Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-        Icon(imageVector = icon, contentDescription = contentDescription ?: label)
+        AnimatedContent(
+            targetState = icon,
+            transitionSpec = { fadeIn() with fadeOut() }
+        ) {
+            Icon(imageVector = it, contentDescription = contentDescription ?: label)
+        }
     }
 }

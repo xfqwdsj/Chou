@@ -48,12 +48,16 @@ fun ChouNavigationBar(
     tonalElevation: Dp = 3.dp,
     content: @Composable RowScope.() -> Unit
 ) {
-    Box(modifier = Modifier.background(containerColor)) {
+    Surface(
+        color = containerColor,
+        contentColor = contentColor,
+        tonalElevation = tonalElevation
+    ) {
         NavigationBar(
             modifier = modifier,
             containerColor = Color.Transparent,
             contentColor = contentColor,
-            tonalElevation = tonalElevation,
+            tonalElevation = 0.dp,
             content = content
         )
     }

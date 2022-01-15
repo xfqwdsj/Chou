@@ -241,6 +241,7 @@ fun Edit(viewModel: ActivityViewModel, state: LazyListState, navigateTo: (String
                                 viewModel.removeItem(index)
                             }
                             ButtonWithIconAndLabel(label = stringResource(id = R.string.edit_item), icon = Icons.Default.Edit) {
+                                viewModel.isEditing = true
                                 viewModel.editingItem = index
                                 val initValue = viewModel.itemList[viewModel.editingItem].value
                                 viewModel.editingValue = TextFieldValue(

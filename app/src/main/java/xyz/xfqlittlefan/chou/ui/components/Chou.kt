@@ -2,15 +2,12 @@ package xyz.xfqlittlefan.chou.ui.components
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.background
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.TextField
 import androidx.compose.material.icons.Icons
@@ -65,7 +62,7 @@ fun Main(viewModel: ActivityViewModel, state: ScrollState/* , navigateTo: (Strin
                         modifier = Modifier.padding(horizontal = 30.dp),
                         transitionSpec = { fadeIn() with fadeOut() }
                     ) {
-                        Text(text = stringResource(id = if (it == 2) R.string.chose_item else R.string.current_item), style = MaterialTheme.typography.titleMedium)
+                        Text(text = stringResource(id = if (it == 2) R.string.selected_item else R.string.current_item), style = MaterialTheme.typography.titleMedium)
                     }
                     AnimatedContent(
                         targetState = viewModel.currentItem,
@@ -87,7 +84,7 @@ fun Main(viewModel: ActivityViewModel, state: ScrollState/* , navigateTo: (Strin
                         Button(
                             onClick = { viewModel.startSelecting() }
                         ) {
-                            Text(text = stringResource(id = R.string.choose))
+                            Text(text = stringResource(id = R.string.start))
                         }
                     }
                 } else {
@@ -113,9 +110,11 @@ fun Edit(viewModel: ActivityViewModel, state: LazyListState, navigateTo: (String
             val background by TopAppBarDefaults.smallTopAppBarColors().containerColor(
                 scrollFraction = viewModel.fraction
             )
+
             Column(
                 modifier = Modifier
                     .background(color = background)
+                    .verticalScroll(rememberScrollState())
                     .systemBarsPadding(top = false, bottom = false)
                     .cutoutPadding(top = false, bottom = false)
             ) {

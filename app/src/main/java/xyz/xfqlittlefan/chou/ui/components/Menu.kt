@@ -24,8 +24,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
@@ -44,13 +43,19 @@ fun ChouDropdownMenu(
     content: @Composable ColumnScope.() -> Unit
 ) {
     if (expanded) {
+        var visible by remember { mutableStateOf(false) }
+
+        SideEffect {
+            visible = true
+        }
+
         Popup(
             onDismissRequest = onDismissRequest,
             popupPositionProvider = DropdownMenuPositionProvider(offset, LocalDensity.current),
             properties = properties
         ) {
             AnimatedVisibility(
-                visible = expanded,
+                visible = visible,
                 enter = expandIn(),
                 exit = shrinkOut()
             ) {

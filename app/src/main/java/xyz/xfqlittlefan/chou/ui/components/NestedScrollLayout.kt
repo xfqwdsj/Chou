@@ -67,7 +67,7 @@ fun NestedScrollLayout(
                 }
 
                 bodyContentPlaceableList.forEach {
-                    it.place(0, topBarHeight + if (nestedScrollBehavior.contentOffset < 0) 0 else nestedScrollBehavior.offset.roundToInt())
+                    it.place(0, if (nestedScrollBehavior.contentOffset < 0) 0 else topBarHeight + nestedScrollBehavior.offset.roundToInt())
                 }
                 topBarPlaceableList.forEach {
                     it.place(0, 0 + nestedScrollBehavior.offset.roundToInt())
@@ -94,17 +94,13 @@ class NestedScrollBehavior(private val coroutineScope: CoroutineScope) {
     private val _contentOffset = Animatable(0f)
     val connection = object : NestedScrollConnection {
         override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-            val newOffset = (offset + available.y)
-            val coerced = newOffset.coerceIn(minimumValue = offsetLimit, maximumValue = 0f)
-            return if (newOffset == coerced) {
-                offset = coerced
-                available.copy(x = 0f)
-            } else {
-                Offset.Zero
-            }
+            val originOffset = offset
+            offset = (offset + available.y).coerceIn(minimumValue = offsetLimit, maximumValue = 0f)
+            return Offset(x = 0f, y = offset - originOffset)
         }
 
         override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
+
             contentOffset += consumed.y
             if (offset == 0f || offset == offsetLimit) {
                 if (consumed.y == 0f && available.y > 0f) {
@@ -115,7 +111,13 @@ class NestedScrollBehavior(private val coroutineScope: CoroutineScope) {
         }
 
         override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
-            animateSetOffset(round(offset, offsetLimit, 0f))
+            animateSetOffset(
+                when {
+                    consumed.y > 0 -> 0f
+                    consumed.y < 0 -> offsetLimit
+                    else -> round(offset, offsetLimit, 0f)
+                }
+            )
             return Velocity.Zero
         }
     }

@@ -122,7 +122,7 @@ fun Edit(viewModel: ActivityViewModel, route: String, state: LazyListState, navi
 
             Column(
                 modifier = Modifier
-                    .wrapContentHeight()
+                    .wrapContentHeight(unbounded = true)
                     .background(color = topBarBackground)
                     .systemBarsPadding(top = false, bottom = false)
                     .cutoutPadding(top = false, bottom = false)

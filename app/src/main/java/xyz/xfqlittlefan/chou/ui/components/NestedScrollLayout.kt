@@ -67,7 +67,7 @@ fun NestedScrollLayout(
                 }
 
                 bodyContentPlaceableList.forEach {
-                    it.place(0, topBarHeight + nestedScrollBehavior.offset.roundToInt())
+                    it.place(0, topBarHeight + if (nestedScrollBehavior.contentOffset < 0) 0 else nestedScrollBehavior.offset.roundToInt())
                 }
                 topBarPlaceableList.forEach {
                     it.place(0, 0 + nestedScrollBehavior.offset.roundToInt())
@@ -111,10 +111,6 @@ class NestedScrollBehavior(private val coroutineScope: CoroutineScope) {
                     contentOffset = 0f
                 }
             }
-            offset = (offset + consumed.y).coerceIn(
-                minimumValue = offsetLimit,
-                maximumValue = 0f
-            )
             return Offset.Zero
         }
 

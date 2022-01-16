@@ -2,15 +2,12 @@ package xyz.xfqlittlefan.chou.ui.components
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.background
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.TextField
 import androidx.compose.material.icons.Icons
@@ -36,14 +33,17 @@ import com.google.accompanist.insets.LocalWindowInsets
 import com.google.accompanist.insets.cutoutPadding
 import com.google.accompanist.insets.rememberInsetsPaddingValues
 import com.google.accompanist.insets.systemBarsPadding
-import kotlinx.coroutines.DelicateCoroutinesApi
 import xyz.xfqlittlefan.chou.ActivityViewModel
 import xyz.xfqlittlefan.chou.R
 import xyz.xfqlittlefan.chou.ui.plus
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun Main(viewModel: ActivityViewModel, state: ScrollState/* , navigateTo: (String) -> Unit */) {
+fun Main(viewModel: ActivityViewModel, route: String, state: ScrollState, navigateTo: (String) -> Unit) {
+    SideEffect {
+        viewModel.globalScreen?.let { if (it != route) navigateTo(it) }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -103,14 +103,14 @@ fun Main(viewModel: ActivityViewModel, state: ScrollState/* , navigateTo: (Strin
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalAnimationApi::class, DelicateCoroutinesApi::class)
+@OptIn(ExperimentalAnimationApi::class, ExperimentalFoundationApi::class)
 @Composable
-fun Edit(viewModel: ActivityViewModel, state: LazyListState, navigateTo: (String) -> Unit) {
+fun Edit(viewModel: ActivityViewModel, route: String, state: LazyListState, navigateTo: (String) -> Unit) {
     val coroutineScope = rememberCoroutineScope()
     val behavior = remember { NestedScrollBehavior(coroutineScope) }
 
     SideEffect {
-        if (viewModel.appState != 0) navigateTo("home")
+        viewModel.globalScreen?.let { if (it != route) navigateTo(it) }
     }
 
     NestedScrollLayout(
@@ -123,6 +123,7 @@ fun Edit(viewModel: ActivityViewModel, state: LazyListState, navigateTo: (String
             Column(
                 modifier = Modifier
                     .background(color = topBarBackground)
+                    .verticalScroll(rememberScrollState())
                     .systemBarsPadding(top = false, bottom = false)
                     .cutoutPadding(top = false, bottom = false)
             ) {
@@ -184,10 +185,12 @@ fun Edit(viewModel: ActivityViewModel, state: LazyListState, navigateTo: (String
                         ) {
                             ButtonWithIconAndLabel(label = stringResource(id = android.R.string.cancel), icon = Icons.Default.Close) {
                                 viewModel.isEditing = false
+                                viewModel.globalScreen = null
                             }
                             ButtonWithIconAndLabel(label = stringResource(id = android.R.string.ok), icon = Icons.Default.Done) {
                                 viewModel.itemList[viewModel.editingItem].value = viewModel.editingValue.text
                                 viewModel.isEditing = false
+                                viewModel.globalScreen = null
                             }
                         }
                     }
@@ -258,6 +261,7 @@ fun Edit(viewModel: ActivityViewModel, state: LazyListState, navigateTo: (String
                             ButtonWithIconAndLabel(label = stringResource(id = R.string.edit_item), icon = Icons.Default.Edit) {
                                 viewModel.isEditing = true
                                 viewModel.editingItem = index
+                                viewModel.globalScreen = "edit"
                                 val initValue = viewModel.itemList[viewModel.editingItem].value
                                 viewModel.editingValue = TextFieldValue(
                                     text = initValue,

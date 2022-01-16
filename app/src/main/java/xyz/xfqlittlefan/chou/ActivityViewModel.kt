@@ -26,6 +26,7 @@ class ActivityViewModel : ViewModel() {
     private val homeScrollState = ScrollState(0)
     private var editScrollState = LazyListState()
     var currentScrollState: Any by mutableStateOf(homeScrollState)
+    var globalScreen: String? by mutableStateOf(null)
 
     private val offset
         get() = when (currentScrollState) {
@@ -52,8 +53,8 @@ class ActivityViewModel : ViewModel() {
     var editingValue by mutableStateOf(TextFieldValue(text = ""))
 
     val screenList = listOf(
-        Screen("home", R.string.home, Icons.Default.Home, homeScrollState) { Main(this, homeScrollState) },
-        Screen("edit", R.string.edit, Icons.Default.Edit, editScrollState) { Edit(this, editScrollState, it) }
+        Screen("home", R.string.home, Icons.Default.Home, homeScrollState) { Main(this, "home", homeScrollState, it) },
+        Screen("edit", R.string.edit, Icons.Default.Edit, editScrollState) { Edit(this, "edit", editScrollState, it) }
     )
 
     val itemTypeList = listOf(
@@ -81,6 +82,7 @@ class ActivityViewModel : ViewModel() {
     @OptIn(DelicateCoroutinesApi::class)
     fun startSelecting() {
         appState = 1
+        globalScreen = "home"
         isEditing = false
         val time = ((4 - (10 / (itemList.size + 2.5))) * 1000).toLong()
         val job = GlobalScope.launch {
@@ -104,6 +106,7 @@ class ActivityViewModel : ViewModel() {
     fun resetState() {
         appState = 0
         currentItem = 0
+        globalScreen = null
     }
 
     class Item {

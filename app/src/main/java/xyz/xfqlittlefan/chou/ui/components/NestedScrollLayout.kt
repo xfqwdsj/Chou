@@ -105,7 +105,7 @@ class NestedScrollBehavior(private val coroutineScope: CoroutineScope) {
         set(value) {
             coroutineScope.launch { _blankOffset.snapTo(value) }
         }
-    private val _blankOffset = Animatable(offsetLimit)
+    private val _blankOffset = Animatable(0f)
     private var direction by mutableStateOf(0f)
     val connection = object : NestedScrollConnection {
         override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {

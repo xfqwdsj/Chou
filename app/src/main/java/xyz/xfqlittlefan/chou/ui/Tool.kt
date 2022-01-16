@@ -16,4 +16,4 @@ fun PaddingValues.plus(another: PaddingValues, layoutDirection: LayoutDirection)
     )
 }
 
-fun round(number: Float, a: Float, b: Float) = if (number >= (max(a, b) - min(a, b)) / 2) max(a, b) else min(a, b)
+fun round(number: Float, a: Float, b: Float) = if (number >= (max(a, b) + min(a, b)) / 2) max(a, b) else min(a, b)

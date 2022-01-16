@@ -16,6 +16,7 @@
 
 package xyz.xfqlittlefan.chou.ui.components
 
+import android.util.Log
 import androidx.compose.animation.core.Animatable
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -89,16 +90,30 @@ class NestedScrollBehavior(private val coroutineScope: CoroutineScope) {
         override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
             val newOffset = (offset + available.y)
             val coerced = newOffset.coerceIn(minimumValue = offsetLimit, maximumValue = 0f)
+            Log.d("Chou|Debug", "onPreScroll!   offset: $offset; offsetLimit: $offsetLimit; delta: ${available.y}; newOffset: $newOffset; coerced: $coerced")
             return if (newOffset == coerced) {
+                Log.i("Chou|Debug", "onPreScroll, consumed!")
                 offset = coerced
                 available.copy(x = 0f)
             } else {
+                Log.i("Chou|Debug", "onPreScroll, not consumed!")
                 Offset.Zero
             }
         }
 
+        override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
+            Log.i("Chou|Debug", "onPostScroll!  consumed: ${consumed.y}; available: ${available.y}")
+            return Offset.Zero
+        }
+
         override suspend fun onPreFling(available: Velocity): Velocity {
+            Log.i("Chou|Debug", "onPreFling!    offset: $offset; offsetLimit: $offsetLimit; round: ${round(offset, offsetLimit, 0f)}")
             animateSetOffset(round(offset, offsetLimit, 0f))
+            return Velocity.Zero
+        }
+
+        override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
+            Log.i("Chou|Debug", "onPostFling!   offset: $offset; offsetLimit: $offsetLimit; round: ${round(offset, offsetLimit, 0f)}")
             return Velocity.Zero
         }
     }

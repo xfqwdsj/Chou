@@ -78,6 +78,7 @@ fun NestedScrollLayout(
 }
 
 class NestedScrollBehavior(private val coroutineScope: CoroutineScope) {
+    var scrollMode by mutableStateOf(MODE_CONTENT_FIRST)
     internal var offsetLimit by mutableStateOf(-Float.MAX_VALUE)
     var offset
         get() = _offset.value
@@ -85,6 +86,12 @@ class NestedScrollBehavior(private val coroutineScope: CoroutineScope) {
             coroutineScope.launch { _offset.snapTo(value) }
         }
     private val _offset = Animatable(0f)
+    var contentOffset
+        get() = _contentOffset.value
+        set(value) {
+            coroutineScope.launch { _contentOffset.snapTo(value) }
+        }
+    private val _contentOffset = Animatable(0f)
     val connection = object : NestedScrollConnection {
         override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
             val newOffset = (offset + available.y)
@@ -97,6 +104,20 @@ class NestedScrollBehavior(private val coroutineScope: CoroutineScope) {
             }
         }
 
+        override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
+            contentOffset += consumed.y
+            if (offset == 0f || offset == offsetLimit) {
+                if (consumed.y == 0f && available.y > 0f) {
+                    contentOffset = 0f
+                }
+            }
+            offset = (offset + consumed.y).coerceIn(
+                minimumValue = offsetLimit,
+                maximumValue = 0f
+            )
+            return Offset.Zero
+        }
+
         override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
             animateSetOffset(round(offset, offsetLimit, 0f))
             return Velocity.Zero
@@ -107,5 +128,8 @@ class NestedScrollBehavior(private val coroutineScope: CoroutineScope) {
         coroutineScope.launch { _offset.animateTo(to) }
     }
 }
+
+private const val MODE_TOP_FIRST = 0
+private const val MODE_CONTENT_FIRST = 1
 
 private enum class NestedScrollLayoutContent { TopBar, MainContent }

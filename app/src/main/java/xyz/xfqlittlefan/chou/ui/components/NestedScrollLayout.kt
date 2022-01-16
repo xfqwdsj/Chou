@@ -16,6 +16,7 @@
 
 package xyz.xfqlittlefan.chou.ui.components
 
+import android.util.Log
 import androidx.compose.animation.core.Animatable
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -98,13 +99,14 @@ class NestedScrollBehavior(private val coroutineScope: CoroutineScope) {
         set(value) {
             coroutineScope.launch { _blankOffset.snapTo(value) }
         }
-    private val _blankOffset = Animatable(0f)
+    private val _blankOffset = Animatable(offsetLimit)
     private var direction by mutableStateOf(0f)
     val connection = object : NestedScrollConnection {
         override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
             val originOffset = offset
             offset = (offset + available.y).coerceIn(minimumValue = offsetLimit, maximumValue = 0f)
             blankOffset = (blankOffset + available.y).coerceIn(minimumValue = offsetLimit, maximumValue = 0f)
+            Log.i("!!!Chou!!!", "offset - originOffset: ${offset - originOffset}")
             return Offset(x = 0f, y = offset - originOffset)
         }
 
@@ -139,7 +141,7 @@ class NestedScrollBehavior(private val coroutineScope: CoroutineScope) {
     private fun animateSetOffset(to: Float) {
         coroutineScope.launch {
             _offset.animateTo(to)
-            if (blankOffset != offsetLimit && blankOffset != 0f) _blankOffset.animateTo(to)
+            if (blankOffset != offsetLimit && blankOffset != 0f) _blankOffset.animateTo(to + offsetLimit)
         }
     }
 }

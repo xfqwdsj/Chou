@@ -98,7 +98,7 @@ class NestedScrollBehavior(private val coroutineScope: CoroutineScope) {
     private var direction by mutableStateOf(0f)
     val connection = object : NestedScrollConnection {
         override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-            val originOffset = offset
+            val originOffset = _offset.value
             offset = (offset + available.y).coerceIn(minimumValue = offsetLimit, maximumValue = 0f)
             if (contentOffset == 0f) blankOffset = (blankOffset + available.y).coerceIn(minimumValue = offsetLimit, maximumValue = 0f)
             Log.w("!!!Chou!!!", "contentOffset=$contentOffset\nblankOffset=$blankOffset\noffset=$offset\noriginOffset=$originOffset\nresult=${offset-originOffset}")

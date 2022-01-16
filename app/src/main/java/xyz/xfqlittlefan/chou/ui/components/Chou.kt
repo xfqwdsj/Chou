@@ -23,18 +23,13 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.flowlayout.FlowRow
 import com.google.accompanist.insets.LocalWindowInsets
@@ -42,12 +37,9 @@ import com.google.accompanist.insets.cutoutPadding
 import com.google.accompanist.insets.rememberInsetsPaddingValues
 import com.google.accompanist.insets.systemBarsPadding
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import xyz.xfqlittlefan.chou.ActivityViewModel
 import xyz.xfqlittlefan.chou.R
 import xyz.xfqlittlefan.chou.ui.plus
-import xyz.xfqlittlefan.chou.ui.round
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
@@ -115,105 +107,18 @@ fun Main(viewModel: ActivityViewModel, state: ScrollState/* , navigateTo: (Strin
 @Composable
 fun Edit(viewModel: ActivityViewModel, state: LazyListState, navigateTo: (String) -> Unit) {
     val coroutineScope = rememberCoroutineScope()
-    var constrains by remember { mutableStateOf(Constraints()) }
-    val topBarOffset = remember { androidx.compose.animation.core.Animatable(0f) }
-    val topBarHeight = constrains.minHeight.toFloat()
-    val nestedScrollConnection = remember {
-        object : NestedScrollConnection {
-            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                val offset = topBarOffset.value + available.y
-                coroutineScope.launch { topBarOffset.snapTo(offset.coerceIn(-topBarHeight, 0f)) }
-                return Offset.Zero
-            }
-
-            override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
-                coroutineScope.launch {
-                    when {
-                        available.y < 0 -> topBarOffset.animateTo(-topBarHeight)
-                        available.y == 0f -> topBarOffset.animateTo(round(topBarOffset.value, -topBarHeight, 0f))
-                        else -> topBarOffset.animateTo(0f)
-                    }
-                }
-                return Offset.Zero
-            }
-        }
-    }
+    val behavior = remember { NestedScrollBehavior(coroutineScope) }
 
     SideEffect {
         if (viewModel.appState != 0) navigateTo("home")
     }
 
-    Box(modifier = Modifier.nestedScroll(nestedScrollConnection)) {
-        val blurRadius by animateDpAsState(targetValue = if (viewModel.isEditing) 10.dp else 0.dp)
-
-        val topBarBackground by TopAppBarDefaults.smallTopAppBarColors().containerColor(
-            scrollFraction = viewModel.fraction
-        )
-
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = with(LocalDensity.current) { (topBarHeight + topBarOffset.value).toDp() })
-                .blur(blurRadius),
-            state = state,
-            contentPadding = rememberInsetsPaddingValues(insets = LocalWindowInsets.current.systemBars, applyTop = false, applyBottom = false)
-                .plus(rememberInsetsPaddingValues(insets = LocalWindowInsets.current.displayCutout, applyTop = false, applyBottom = false), LocalLayoutDirection.current)
-        ) {
-            itemsIndexed(items = viewModel.itemList, key = { _, item -> item.toString() }) { index, item ->
-                Surface(
-                    modifier = Modifier
-                        .padding(horizontal = 10.dp, vertical = 5.dp)
-                        .fillMaxWidth()
-                        .animateItemPlacement(),
-                    shape = RoundedCornerShape(10.dp),
-                    tonalElevation = 4.dp
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                    ) {
-                        Spacer(Modifier.height(20.dp))
-                        CompositionLocalProvider(LocalContentColor provides LocalContentColor.current.copy(alpha = 0.38f)) {
-                            AnimatedContent(
-                                targetState = "${index + 1}. ${stringResource(id = item.type)}",
-                                transitionSpec = { fadeIn() with fadeOut() }
-                            ) {
-                                Text(text = it, modifier = Modifier.padding(horizontal = 20.dp))
-                            }
-                        }
-                        Spacer(Modifier.height(5.dp))
-                        AnimatedContent(
-                            targetState = item.value,
-                            transitionSpec = { fadeIn() with fadeOut() }
-                        ) {
-                            Text(text = it, modifier = Modifier.padding(horizontal = 20.dp))
-                        }
-                        Spacer(Modifier.height(10.dp))
-                        FlowRow(modifier = Modifier.padding(horizontal = 10.dp)) {
-                            ButtonWithIconAndLabel(label = stringResource(id = R.string.add_item), icon = Icons.Default.Add) {
-                                viewModel.addItem(index + 1)
-                            }
-                            ButtonWithIconAndLabel(label = stringResource(id = R.string.remove_item), icon = Icons.Default.Delete) {
-                                viewModel.removeItem(index)
-                            }
-                            ButtonWithIconAndLabel(label = stringResource(id = R.string.edit_item), icon = Icons.Default.Edit) {
-                                viewModel.isEditing = true
-                                viewModel.editingItem = index
-                                val initValue = viewModel.itemList[viewModel.editingItem].value
-                                viewModel.editingValue = TextFieldValue(
-                                    text = initValue,
-                                    selection = TextRange(index = initValue.length)
-                                )
-                            }
-                        }
-                        Spacer(Modifier.height(10.dp))
-                    }
-                }
-            }
-        }
-
-        BoxWithConstraints(modifier = Modifier.offset(y = with(LocalDensity.current) { topBarOffset.value.toDp() })) {
-            SideEffect { constrains = this.constraints }
+    NestedScrollLayout(
+        modifier = Modifier.nestedScroll(behavior.connection),
+        topBar = {
+            val topBarBackground by TopAppBarDefaults.smallTopAppBarColors().containerColor(
+                scrollFraction = viewModel.fraction
+            )
 
             Column(
                 modifier = Modifier
@@ -298,6 +203,70 @@ fun Edit(viewModel: ActivityViewModel, state: LazyListState, navigateTo: (String
                     Text(
                         text = stringResource(id = R.string.add_item)
                     )
+                }
+            }
+        },
+        nestedScrollBehavior = behavior
+    ) {
+        val blurRadius by animateDpAsState(targetValue = if (viewModel.isEditing) 10.dp else 0.dp)
+
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .blur(blurRadius),
+            state = state,
+            contentPadding = rememberInsetsPaddingValues(insets = LocalWindowInsets.current.systemBars, applyTop = false, applyBottom = false)
+                .plus(rememberInsetsPaddingValues(insets = LocalWindowInsets.current.displayCutout, applyTop = false, applyBottom = false), LocalLayoutDirection.current)
+        ) {
+            itemsIndexed(items = viewModel.itemList, key = { _, item -> item.toString() }) { index, item ->
+                Surface(
+                    modifier = Modifier
+                        .padding(horizontal = 10.dp, vertical = 5.dp)
+                        .fillMaxWidth()
+                        .animateItemPlacement(),
+                    shape = RoundedCornerShape(10.dp),
+                    tonalElevation = 4.dp
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    ) {
+                        Spacer(Modifier.height(20.dp))
+                        CompositionLocalProvider(LocalContentColor provides LocalContentColor.current.copy(alpha = 0.38f)) {
+                            AnimatedContent(
+                                targetState = "${index + 1}. ${stringResource(id = item.type)}",
+                                transitionSpec = { fadeIn() with fadeOut() }
+                            ) {
+                                Text(text = it, modifier = Modifier.padding(horizontal = 20.dp))
+                            }
+                        }
+                        Spacer(Modifier.height(5.dp))
+                        AnimatedContent(
+                            targetState = item.value,
+                            transitionSpec = { fadeIn() with fadeOut() }
+                        ) {
+                            Text(text = it, modifier = Modifier.padding(horizontal = 20.dp))
+                        }
+                        Spacer(Modifier.height(10.dp))
+                        FlowRow(modifier = Modifier.padding(horizontal = 10.dp)) {
+                            ButtonWithIconAndLabel(label = stringResource(id = R.string.add_item), icon = Icons.Default.Add) {
+                                viewModel.addItem(index + 1)
+                            }
+                            ButtonWithIconAndLabel(label = stringResource(id = R.string.remove_item), icon = Icons.Default.Delete) {
+                                viewModel.removeItem(index)
+                            }
+                            ButtonWithIconAndLabel(label = stringResource(id = R.string.edit_item), icon = Icons.Default.Edit) {
+                                viewModel.isEditing = true
+                                viewModel.editingItem = index
+                                val initValue = viewModel.itemList[viewModel.editingItem].value
+                                viewModel.editingValue = TextFieldValue(
+                                    text = initValue,
+                                    selection = TextRange(index = initValue.length)
+                                )
+                            }
+                        }
+                        Spacer(Modifier.height(10.dp))
+                    }
                 }
             }
         }

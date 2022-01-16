@@ -100,7 +100,7 @@ class NestedScrollBehavior(private val coroutineScope: CoroutineScope) {
         override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
             val originOffset = offset
             offset = (offset + available.y).coerceIn(minimumValue = offsetLimit, maximumValue = 0f)
-            blankOffset = (blankOffset + available.y).coerceIn(minimumValue = offsetLimit, maximumValue = 0f)
+            if (contentOffset == 0f) blankOffset = (blankOffset + available.y).coerceIn(minimumValue = offsetLimit, maximumValue = 0f)
             return Offset(x = 0f, y = offset - originOffset)
         }
 
@@ -111,7 +111,6 @@ class NestedScrollBehavior(private val coroutineScope: CoroutineScope) {
                     contentOffset = 0f
                 }
             }
-            offset = (offset + consumed.y).coerceIn(minimumValue = offsetLimit, maximumValue = 0f)
             return Offset.Zero
         }
 
@@ -133,10 +132,8 @@ class NestedScrollBehavior(private val coroutineScope: CoroutineScope) {
     }
 
     private fun animateSetOffset(to: Float) {
-        coroutineScope.launch {
-            _offset.animateTo(to)
-            if (blankOffset != offsetLimit && blankOffset != 0f) _blankOffset.animateTo(to)
-        }
+        coroutineScope.launch { _offset.animateTo(to) }
+        if (blankOffset != offsetLimit && blankOffset != 0f) coroutineScope.launch { _blankOffset.animateTo(to) }
     }
 }
 

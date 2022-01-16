@@ -101,6 +101,7 @@ class NestedScrollBehavior(private val coroutineScope: CoroutineScope) {
             val originOffset = offset
             offset = (offset + available.y).coerceIn(minimumValue = offsetLimit, maximumValue = 0f)
             if (contentOffset == 0f) blankOffset = (blankOffset + available.y).coerceIn(minimumValue = offsetLimit, maximumValue = 0f)
+            Log.w("!!!Chou!!!", "contentOffset=$contentOffset\nblankOffset=$blankOffset")
             return Offset(x = 0f, y = offset - originOffset)
         }
 

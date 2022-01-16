@@ -114,6 +114,7 @@ fun Main(viewModel: ActivityViewModel, state: ScrollState/* , navigateTo: (Strin
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalAnimationApi::class, DelicateCoroutinesApi::class)
 @Composable
 fun Edit(viewModel: ActivityViewModel, state: LazyListState, navigateTo: (String) -> Unit) {
+    val coroutineScope = rememberCoroutineScope()
     var constrains by remember { mutableStateOf(Constraints()) }
     val topBarOffset = remember { androidx.compose.animation.core.Animatable(0f) }
     val topBarHeight = constrains.minHeight.toFloat()
@@ -121,12 +122,12 @@ fun Edit(viewModel: ActivityViewModel, state: LazyListState, navigateTo: (String
         object : NestedScrollConnection {
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
                 val offset = topBarOffset.value + available.y
-                GlobalScope.launch { topBarOffset.snapTo(offset.coerceIn(-topBarHeight, 0f)) }
+                coroutineScope.launch { topBarOffset.snapTo(offset.coerceIn(-topBarHeight, 0f)) }
                 return Offset.Zero
             }
 
             override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
-                GlobalScope.launch {
+                coroutineScope.launch {
                     when {
                         available.y < 0 -> topBarOffset.animateTo(-topBarHeight)
                         available.y == 0f -> topBarOffset.animateTo(round(topBarOffset.value, -topBarHeight, 0f))

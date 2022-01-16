@@ -26,7 +26,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.TransformOrigin
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.window.Popup
@@ -51,14 +50,9 @@ fun ChouDropdownMenu(
     }
 
     if (showPopup) {
-        var transformOrigin by remember { mutableStateOf(TransformOrigin.Center) }
-        val popupPositionProvider = DropdownMenuPositionProvider(offset, LocalDensity.current) { parentBounds, menuBounds ->
-            transformOrigin = calculateTransformOrigin(parentBounds, menuBounds)
-        }
-
         Popup(
             onDismissRequest = onDismissRequest,
-            popupPositionProvider = popupPositionProvider,
+            popupPositionProvider = DropdownMenuPositionProvider(offset, LocalDensity.current),
             properties = properties
         ) {
             LaunchedEffect(Unit) {
@@ -66,7 +60,6 @@ fun ChouDropdownMenu(
             }
 
             Surface(
-                modifier = Modifier.graphicsLayer { this.transformOrigin = transformOrigin },
                 shape = RoundedCornerShape(4.dp),
                 tonalElevation = MenuElevation,
                 shadowElevation = MenuElevation
@@ -99,44 +92,10 @@ private val MenuElevation = 8.dp
 internal val MenuVerticalMargin = 48.dp
 internal val DropdownMenuVerticalPadding = 8.dp
 
-internal fun calculateTransformOrigin(
-    parentBounds: IntRect,
-    menuBounds: IntRect
-): TransformOrigin {
-    val pivotX = when {
-        menuBounds.left >= parentBounds.right -> 0f
-        menuBounds.right <= parentBounds.left -> 1f
-        menuBounds.width == 0 -> 0f
-        else -> {
-            val intersectionCenter =
-                (
-                        kotlin.math.max(parentBounds.left, menuBounds.left) +
-                                kotlin.math.min(parentBounds.right, menuBounds.right)
-                        ) / 2
-            (intersectionCenter - menuBounds.left).toFloat() / menuBounds.width
-        }
-    }
-    val pivotY = when {
-        menuBounds.top >= parentBounds.bottom -> 0f
-        menuBounds.bottom <= parentBounds.top -> 1f
-        menuBounds.height == 0 -> 0f
-        else -> {
-            val intersectionCenter =
-                (
-                        kotlin.math.max(parentBounds.top, menuBounds.top) +
-                                kotlin.math.min(parentBounds.bottom, menuBounds.bottom)
-                        ) / 2
-            (intersectionCenter - menuBounds.top).toFloat() / menuBounds.height
-        }
-    }
-    return TransformOrigin(pivotX, pivotY)
-}
-
 @Immutable
 internal data class DropdownMenuPositionProvider(
     val contentOffset: DpOffset,
-    val density: Density,
-    val onPositionCalculated: (IntRect, IntRect) -> Unit = { _, _ -> }
+    val density: Density
 ) : PopupPositionProvider {
     override fun calculatePosition(
         anchorBounds: IntRect,
@@ -177,10 +136,6 @@ internal data class DropdownMenuPositionProvider(
                     it + popupContentSize.height <= windowSize.height - verticalMargin
         } ?: toTop
 
-        onPositionCalculated(
-            anchorBounds,
-            IntRect(x, y, x + popupContentSize.width, y + popupContentSize.height)
-        )
         return IntOffset(x, y)
     }
 }

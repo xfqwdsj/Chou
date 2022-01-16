@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.ui.unit.LayoutDirection
+import kotlin.math.max
+import kotlin.math.min
 
 fun PaddingValues.plus(another: PaddingValues, layoutDirection: LayoutDirection): PaddingValues {
     return PaddingValues(
@@ -13,3 +15,5 @@ fun PaddingValues.plus(another: PaddingValues, layoutDirection: LayoutDirection)
         bottom = this.calculateBottomPadding() + another.calculateBottomPadding()
     )
 }
+
+fun round(number: Float, a: Float, b: Float) = if (number >= (max(a, b) - min(a, b)) / 2) max(a, b) else min(a, b)

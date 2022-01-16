@@ -61,7 +61,7 @@ fun NestedScrollLayout(
                 val topBarHeight = topBarPlaceableList.maxByOrNull { it.height }?.height ?: 0
                 nestedScrollBehavior.offsetLimit = (-topBarHeight).toFloat()
 
-                val bodyY = (-nestedScrollBehavior.blankOffset).roundToInt()
+                val bodyY = (nestedScrollBehavior.blankOffset - nestedScrollBehavior.offsetLimit).roundToInt()
                 val bodyContentHeight = layoutHeight - bodyY
 
                 val bodyContentPlaceableList = subcompose(NestedScrollLayoutContent.MainContent, content).map {
@@ -81,25 +81,14 @@ fun NestedScrollLayout(
 
 class NestedScrollBehavior(private val coroutineScope: CoroutineScope) {
     var scrollMode by mutableStateOf(MODE_CONTENT_FIRST)
-    internal var offsetLimit
-        get() = _offsetLimit
-        set(value) {
-            _offsetLimit = value
-            blankOffset = value
-        }
-    private var _offsetLimit by mutableStateOf(-Float.MAX_VALUE)
+    var offsetLimit by mutableStateOf(-Float.MAX_VALUE)
     var offset
         get() = _offset.value
         set(value) {
             coroutineScope.launch { _offset.snapTo(value) }
         }
     private val _offset = Animatable(0f)
-    var contentOffset
-        get() = _contentOffset.value
-        set(value) {
-            coroutineScope.launch { _contentOffset.snapTo(value) }
-        }
-    private val _contentOffset = Animatable(0f)
+    var contentOffset by mutableStateOf(0f)
     internal var blankOffset
         get() = _blankOffset.value
         set(value) {
@@ -146,7 +135,7 @@ class NestedScrollBehavior(private val coroutineScope: CoroutineScope) {
     private fun animateSetOffset(to: Float) {
         coroutineScope.launch {
             _offset.animateTo(to)
-            if (blankOffset != offsetLimit && blankOffset != 0f) _blankOffset.animateTo(to + offsetLimit)
+            if (blankOffset != offsetLimit && blankOffset != 0f) _blankOffset.animateTo(to)
         }
     }
 }

@@ -17,8 +17,6 @@
 package xyz.xfqlittlefan.chou.ui.components
 
 import android.util.Log
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.contentColorFor
@@ -34,7 +32,6 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.unit.Velocity
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import xyz.xfqlittlefan.chou.ui.AnimatedFloatValue
 import kotlin.math.roundToInt
 
@@ -61,50 +58,29 @@ fun NestedScrollLayout(
                     it.measure(looseConstraints)
                 }
 
-                val topBarY = AnimatedFloatValue(nestedScrollBehavior.offset, nestedScrollBehavior.coroutineScope)
-                val topBarHeight = if (nestedScrollBehavior.scrollMode == MODE_TOP_ONLY) layoutHeight else topBarPlaceableList.maxByOrNull { it.height }?.height ?: 0
+                val topBarHeight = topBarPlaceableList.maxByOrNull { it.height }?.height ?: 0
                 nestedScrollBehavior.offsetLimit = (-topBarHeight).toFloat()
 
-                val bodyY = AnimatedFloatValue(nestedScrollBehavior.blankOffset - nestedScrollBehavior.offsetLimit, nestedScrollBehavior.coroutineScope)
-                val bodyContentHeight = layoutHeight - bodyY.value.roundToInt()
-
-                nestedScrollBehavior.onScrollModeChanged = {
-                    when (it) {
-                        MODE_TOP_ONLY -> {
-                            topBarY.animatedTo(0f)
-                            bodyY.animatedTo(topBarHeight.toFloat())
-                        }
-                        MODE_CONTENT_FIRST -> {
-                            topBarY.animatedTo(nestedScrollBehavior.offset)
-                            bodyY.animatedTo(nestedScrollBehavior.blankOffset - nestedScrollBehavior.offsetLimit)
-                        }
-                    }
-                }
+                val bodyY = (nestedScrollBehavior.blankOffset - nestedScrollBehavior.offsetLimit).roundToInt()
+                val bodyContentHeight = layoutHeight - bodyY
 
                 val bodyContentPlaceableList = subcompose(NestedScrollLayoutContent.MainContent, content).map {
                     it.measure(looseConstraints.copy(maxHeight = bodyContentHeight))
                 }
 
                 bodyContentPlaceableList.forEach {
-                    it.place(0, bodyY.value.roundToInt())
+                    it.place(0, bodyY)
                 }
                 topBarPlaceableList.forEach {
-                    it.place(0, topBarY.value.roundToInt())
+                    it.place(0, nestedScrollBehavior.offset.roundToInt())
                 }
             }
         }
     }
 }
 
-class NestedScrollBehavior(internal val coroutineScope: CoroutineScope) {
-    var scrollMode
-        get() = _scrollMode
-        set(value) {
-            _scrollMode = value
-            onScrollModeChanged(value)
-        }
-    private var _scrollMode by mutableStateOf(MODE_CONTENT_FIRST)
-    internal var onScrollModeChanged: (Int) -> Unit = {}
+class NestedScrollBehavior(coroutineScope: CoroutineScope) {
+    var canScroll by mutableStateOf(true)
     val scrollFraction
         get() = if (offsetLimit != 0f) {
             1 - ((offsetLimit - contentOffset).coerceIn(
@@ -116,11 +92,15 @@ class NestedScrollBehavior(internal val coroutineScope: CoroutineScope) {
         }
     internal var offset
         get() = _offset.value
-        set(value) { _offset.value = value }
+        set(value) {
+            _offset.value = value
+        }
     private var _offset = AnimatedFloatValue(0f, coroutineScope)
     internal var blankOffset
         get() = _blankOffset.value
-        set(value) { _blankOffset.value = value }
+        set(value) {
+            _blankOffset.value = value
+        }
     private var _blankOffset = AnimatedFloatValue(0f, coroutineScope)
     private var contentOffset by mutableStateOf(0f)
     internal var offsetLimit by mutableStateOf(-Float.MAX_VALUE)
@@ -129,7 +109,7 @@ class NestedScrollBehavior(internal val coroutineScope: CoroutineScope) {
     private var previousOffset by mutableStateOf(0f)
     val connection = object : NestedScrollConnection {
         override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-            return if (scrollMode == MODE_CONTENT_FIRST) {
+            return if (canScroll) {
                 direction += available.y
                 offset = (offset + available.y).coerceIn(minimumValue = offsetLimit, maximumValue = 0f)
                 val newBlankOffset = (blankOffset + available.y).coerceIn(minimumValue = offsetLimit, maximumValue = 0f)
@@ -137,14 +117,14 @@ class NestedScrollBehavior(internal val coroutineScope: CoroutineScope) {
                 if (available.y < 0f) blankOffset = newBlankOffset
                 Log.w("!!!Chou!!!", "1\noffset=$offset\nblankOffset=$blankOffset\nconsumed=${if (difference < 0f) difference else 0f}")
                 Offset(x = 0f, y = if (difference < 0f) difference else 0f)
-            }
-            else {
-                available
+            } else {
+                Log.w("!!!Chou!!!", "1\noffset=$offset\nblankOffset=$blankOffset\nconsumed=0.0")
+                Offset.Zero
             }
         }
 
         override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
-            return if (scrollMode == MODE_CONTENT_FIRST) {
+            return if (canScroll) {
                 contentOffset += consumed.y
                 direction = consumed.y + available.y
                 if (offset == 0f || offset == offsetLimit) {
@@ -154,20 +134,17 @@ class NestedScrollBehavior(internal val coroutineScope: CoroutineScope) {
                 }
                 val newOffset = (blankOffset + available.y).coerceIn(minimumValue = offsetLimit, maximumValue = 0f)
                 val difference = newOffset - blankOffset
-                if (available.y > 0f) blankOffset = newOffset
                 Log.i("!!!Chou!!!", "2\nconsumed=${consumed.y}\navailable=${available.y}\ncommitted=${if (available.y > 0f) difference else 0f}")
+                if (available.y > 0f) blankOffset = newOffset
                 Offset(x = 0f, y = if (available.y > 0f) difference else 0f)
             } else {
-                available
+                Log.i("!!!Chou!!!", "2\nconsumed=${consumed.y}\navailable=${available.y}\ncommitted=0.0")
+                Offset.Zero
             }
         }
 
-        override suspend fun onPreFling(available: Velocity): Velocity {
-            return if (scrollMode == MODE_CONTENT_FIRST) Velocity.Zero else available
-        }
-
         override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
-            return if (scrollMode == MODE_CONTENT_FIRST) {
+            if (canScroll) {
                 animateSetOffset(
                     when {
                         direction > 0 -> 0f
@@ -175,12 +152,10 @@ class NestedScrollBehavior(internal val coroutineScope: CoroutineScope) {
                         else -> previousOffset
                     }
                 )
-                Log.e("!!!Chou!!!", "4\noffset=$offset\nblankOffset=$blankOffset\ndirection=$direction")
                 direction = 0f
-                Velocity.Zero
-            } else {
-                available
             }
+            Log.e("!!!Chou!!!", "4\noffset=$offset\nblankOffset=$blankOffset\ndirection=$direction")
+            return Velocity.Zero
         }
     }
 
@@ -190,8 +165,5 @@ class NestedScrollBehavior(internal val coroutineScope: CoroutineScope) {
         if (blankOffset != offsetLimit && blankOffset != 0f) _blankOffset.animatedTo(to)
     }
 }
-
-const val MODE_TOP_ONLY = 0
-const val MODE_CONTENT_FIRST = 1
 
 private enum class NestedScrollLayoutContent { TopBar, MainContent }

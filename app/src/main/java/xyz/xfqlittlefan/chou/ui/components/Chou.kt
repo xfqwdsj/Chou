@@ -1,13 +1,15 @@
 package xyz.xfqlittlefan.chou.ui.components
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.foundation.*
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.TextField
 import androidx.compose.material.icons.Icons
@@ -16,7 +18,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -29,10 +30,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.flowlayout.FlowRow
-import com.google.accompanist.insets.LocalWindowInsets
-import com.google.accompanist.insets.cutoutPadding
-import com.google.accompanist.insets.rememberInsetsPaddingValues
-import com.google.accompanist.insets.systemBarsPadding
+import com.google.accompanist.insets.*
 import xyz.xfqlittlefan.chou.ActivityViewModel
 import xyz.xfqlittlefan.chou.R
 import xyz.xfqlittlefan.chou.ui.plus
@@ -182,18 +180,18 @@ fun Edit(viewModel: ActivityViewModel, route: String, state: LazyListState, navi
                         }
                         Spacer(Modifier.width(10.dp))
                         FlowRow(
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .navigationBarsPadding(start = false, end = false)
                         ) {
                             ButtonWithIconAndLabel(label = stringResource(id = android.R.string.cancel), icon = Icons.Default.Close) {
                                 viewModel.isEditing = false
                                 viewModel.globalScreen = null
-                                behavior.scrollMode = MODE_CONTENT_FIRST
                             }
                             ButtonWithIconAndLabel(label = stringResource(id = android.R.string.ok), icon = Icons.Default.Done) {
                                 viewModel.itemList[viewModel.editingItem].value = viewModel.editingValue.text
                                 viewModel.isEditing = false
                                 viewModel.globalScreen = null
-                                behavior.scrollMode = MODE_CONTENT_FIRST
                             }
                         }
                     }
@@ -264,7 +262,6 @@ fun Edit(viewModel: ActivityViewModel, route: String, state: LazyListState, navi
                                 viewModel.isEditing = true
                                 viewModel.editingItem = index
                                 viewModel.globalScreen = "edit"
-                                behavior.scrollMode = MODE_TOP_ONLY
                                 val initValue = viewModel.itemList[viewModel.editingItem].value
                                 viewModel.editingValue = TextFieldValue(
                                     text = initValue,

@@ -9,9 +9,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.LayoutDirection
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import xyz.xfqlittlefan.chou.ui.components.NestedScrollBehavior
 import kotlin.reflect.KProperty
 
 fun PaddingValues.plus(another: PaddingValues, layoutDirection: LayoutDirection): PaddingValues {
@@ -42,5 +40,7 @@ class AnimatedFloatValue(initialValue: Float, private val coroutineScope: Corout
 
     operator fun getValue(thisObj: Any?, property: KProperty<*>): Float = value
 
-    operator fun setValue(thisObj: Any?, property: KProperty<*>, value: Float) { this.value = value }
+    operator fun setValue(thisObj: Any?, property: KProperty<*>, value: Float) {
+        this.value = value
+    }
 }

@@ -25,7 +25,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.insets.ProvideWindowInsets
 import com.google.accompanist.insets.cutoutPadding
-import com.google.accompanist.insets.imePadding
 import com.google.accompanist.insets.systemBarsPadding
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import xyz.xfqlittlefan.chou.ui.components.ChouAppBar
@@ -85,7 +84,6 @@ class MainActivity : ComponentActivity() {
                                 ChouNavigationBar(
                                     modifier = Modifier
                                         .systemBarsPadding(top = false)
-                                        .imePadding()
                                         .cutoutPadding(top = false, bottom = false)
                                 ) {
                                     val navBackStackEntry by navController.currentBackStackEntryAsState()

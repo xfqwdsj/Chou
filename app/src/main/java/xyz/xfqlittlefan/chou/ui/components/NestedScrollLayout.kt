@@ -116,7 +116,7 @@ class NestedScrollBehavior(private val coroutineScope: CoroutineScope) {
             val newOffset = (blankOffset + available.y).coerceIn(minimumValue = offsetLimit, maximumValue = 0f)
             val difference = newOffset - blankOffset
             if (available.y > 0) blankOffset = newOffset
-            Log.i("!!!Chou!!!", "2\ncontentOffset=$contentOffset\noffset=$offset\nblankOffset=$blankOffset\nconsumed=${if (available.y > 0) difference else 0f}")
+            Log.i("!!!Chou!!!", "2\ncontentOffset=$contentOffset\nconsumed=${consumed.y}\navailable=${available.y}\ncommitted=${if (available.y > 0) difference else 0f}")
             return Offset(x = 0f, y = if (available.y > 0) difference else 0f)
         }
 

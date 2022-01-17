@@ -122,7 +122,7 @@ fun Edit(viewModel: ActivityViewModel, route: String, state: LazyListState, navi
 
             Column(
                 modifier = Modifier
-                    .wrapContentHeight(unbounded = true)
+                    .wrapContentHeight()
                     .background(color = topBarBackground)
                     .systemBarsPadding(top = false, bottom = false)
                     .cutoutPadding(top = false, bottom = false)
@@ -186,11 +186,13 @@ fun Edit(viewModel: ActivityViewModel, route: String, state: LazyListState, navi
                             ButtonWithIconAndLabel(label = stringResource(id = android.R.string.cancel), icon = Icons.Default.Close) {
                                 viewModel.isEditing = false
                                 viewModel.globalScreen = null
+                                behavior.scrollMode = MODE_CONTENT_FIRST
                             }
                             ButtonWithIconAndLabel(label = stringResource(id = android.R.string.ok), icon = Icons.Default.Done) {
                                 viewModel.itemList[viewModel.editingItem].value = viewModel.editingValue.text
                                 viewModel.isEditing = false
                                 viewModel.globalScreen = null
+                                behavior.scrollMode = MODE_CONTENT_FIRST
                             }
                         }
                     }
@@ -211,12 +213,8 @@ fun Edit(viewModel: ActivityViewModel, route: String, state: LazyListState, navi
         },
         nestedScrollBehavior = behavior
     ) {
-        val blurRadius by animateDpAsState(targetValue = if (viewModel.isEditing) 10.dp else 0.dp)
-
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .blur(blurRadius),
+            modifier = Modifier.fillMaxSize(),
             state = state,
             contentPadding = rememberInsetsPaddingValues(insets = LocalWindowInsets.current.systemBars, applyTop = false, applyBottom = false)
                 .plus(rememberInsetsPaddingValues(insets = LocalWindowInsets.current.displayCutout, applyTop = false, applyBottom = false), LocalLayoutDirection.current)
@@ -262,6 +260,7 @@ fun Edit(viewModel: ActivityViewModel, route: String, state: LazyListState, navi
                                 viewModel.isEditing = true
                                 viewModel.editingItem = index
                                 viewModel.globalScreen = "edit"
+                                behavior.scrollMode = MODE_TOP_ONLY
                                 val initValue = viewModel.itemList[viewModel.editingItem].value
                                 viewModel.editingValue = TextFieldValue(
                                     text = initValue,

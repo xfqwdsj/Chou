@@ -191,7 +191,7 @@ class NestedScrollBehavior(internal val coroutineScope: CoroutineScope) {
     }
 }
 
-private const val MODE_TOP_ONLY = 0
-private const val MODE_CONTENT_FIRST = 1
+const val MODE_TOP_ONLY = 0
+const val MODE_CONTENT_FIRST = 1
 
 private enum class NestedScrollLayoutContent { TopBar, MainContent }

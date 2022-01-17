@@ -116,7 +116,7 @@ class NestedScrollBehavior(private val coroutineScope: CoroutineScope) {
             val newOffset = (blankOffset + available.y).coerceIn(minimumValue = offsetLimit, maximumValue = 0f)
             val difference = newOffset - blankOffset
             if (available.y > 0) blankOffset = newOffset
-            return Offset(x = 0f, y = difference)
+            return Offset(x = 0f, y = if (available.y > 0) difference else 0f)
         }
 
         override suspend fun onPreFling(available: Velocity): Velocity {

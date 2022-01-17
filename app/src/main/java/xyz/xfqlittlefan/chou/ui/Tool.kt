@@ -35,7 +35,7 @@ class AnimatedFloatValue(initialValue: Float, private val coroutineScope: Corout
         }
 
     fun animatedTo(value: Float) {
-        _animatedValue = Animatable(value)
+        _animatedValue = Animatable(_value)
         useAnimatedValue = true
         coroutineScope.launch { _animatedValue.animateTo(value) }
     }

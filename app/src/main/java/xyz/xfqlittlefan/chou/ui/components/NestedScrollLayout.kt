@@ -95,13 +95,15 @@ class NestedScrollBehavior(private val coroutineScope: CoroutineScope) {
             coroutineScope.launch { _blankOffset.snapTo(value) }
         }
     private val _blankOffset = Animatable(0f)
+    private var preAvailable by mutableStateOf(0f)
     private var direction by mutableStateOf(0f)
     val connection = object : NestedScrollConnection {
         override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+            preAvailable = available.y
             val newOffset = (offset + available.y).coerceIn(minimumValue = offsetLimit, maximumValue = 0f)
             val difference = newOffset - offset
             offset = newOffset
-            if (available.y < 0) blankOffset = (blankOffset + available.y).coerceIn(minimumValue = offsetLimit, maximumValue = 0f)
+            if (available.y < 0f) blankOffset = (blankOffset + available.y).coerceIn(minimumValue = offsetLimit, maximumValue = 0f)
             Log.w("!!!Chou!!!", "1\ncontentOffset=$contentOffset\noffset=$offset\nblankOffset=$blankOffset\nconsumed=${if (blankOffset > offsetLimit) difference else 0f}")
             return Offset(x = 0f, y = if (blankOffset > offsetLimit) difference else 0f)
         }
@@ -113,11 +115,11 @@ class NestedScrollBehavior(private val coroutineScope: CoroutineScope) {
                     contentOffset = 0f
                 }
             }
-            val newOffset = (blankOffset + available.y).coerceIn(minimumValue = offsetLimit, maximumValue = 0f)
+            val newOffset = (blankOffset + preAvailable).coerceIn(minimumValue = offsetLimit, maximumValue = 0f)
             val difference = newOffset - blankOffset
-            if (available.y > 0) blankOffset = newOffset
-            Log.i("!!!Chou!!!", "2\ncontentOffset=$contentOffset\nconsumed=${consumed.y}\navailable=${available.y}\ncommitted=${if (available.y > 0) difference else 0f}")
-            return Offset(x = 0f, y = if (available.y > 0) difference else 0f)
+            if (preAvailable > 0f && contentOffset == 0f) blankOffset = newOffset
+            Log.i("!!!Chou!!!", "2\ncontentOffset=$contentOffset\nconsumed=${consumed.y}\navailable=${available.y}\ncommitted=${if (available.y > 0f) difference else 0f}")
+            return Offset(x = 0f, y = if (available.y > 0f) difference else 0f)
         }
 
         override suspend fun onPreFling(available: Velocity): Velocity {

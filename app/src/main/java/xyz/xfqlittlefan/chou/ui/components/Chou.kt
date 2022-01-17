@@ -153,6 +153,7 @@ fun Edit(viewModel: ActivityViewModel, route: String, state: LazyListState, navi
                         Spacer(Modifier.height(5.dp))
                         AnimatedContent(
                             targetState = viewModel.itemList[viewModel.editingItem].type,
+                            modifier = Modifier.weight(1f, fill = false),
                             transitionSpec = { fadeIn() with fadeOut() }
                         ) { type ->
                             when (type) {
@@ -197,18 +198,21 @@ fun Edit(viewModel: ActivityViewModel, route: String, state: LazyListState, navi
                         }
                     }
                 }
-                Spacer(Modifier.height(5.dp))
-                TextButton(
-                    onClick = { viewModel.addItem(0) },
-                    modifier = Modifier
-                        .padding(horizontal = 10.dp)
-                        .fillMaxWidth(),
-                    shape = RoundedCornerShape(size = 10.dp)
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.add_item)
-                    )
+                AnimatedVisibility(visible = !viewModel.isEditing) {
+                    Spacer(Modifier.height(5.dp))
+                    TextButton(
+                        onClick = { viewModel.addItem(0) },
+                        modifier = Modifier
+                            .padding(horizontal = 10.dp)
+                            .fillMaxWidth(),
+                        shape = RoundedCornerShape(size = 10.dp)
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.add_item)
+                        )
+                    }
                 }
+                Spacer(Modifier.height(5.dp))
             }
         },
         nestedScrollBehavior = behavior

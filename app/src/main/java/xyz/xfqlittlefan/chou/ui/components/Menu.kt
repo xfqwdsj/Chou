@@ -38,6 +38,8 @@ fun ChouDropdownMenu(
     expanded: Boolean,
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
+    enter: EnterTransition = fadeIn() + expandIn(animationSpec = spring()),
+    exit: ExitTransition = shrinkOut(animationSpec = spring()) + fadeOut(),
     offset: DpOffset = DpOffset(0.dp, 0.dp),
     properties: PopupProperties = PopupProperties(focusable = true),
     content: @Composable ColumnScope.() -> Unit
@@ -66,8 +68,8 @@ fun ChouDropdownMenu(
             ) {
                 AnimatedVisibility(
                     visible = visible,
-                    enter = fadeIn() + expandIn(animationSpec = spring()),
-                    exit = shrinkOut(animationSpec = spring()) + fadeOut()
+                    enter = enter,
+                    exit = exit
                 ) {
                     DisposableEffect(Unit) {
                         onDispose {

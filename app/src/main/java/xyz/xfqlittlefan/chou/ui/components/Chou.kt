@@ -1,15 +1,12 @@
 package xyz.xfqlittlefan.chou.ui.components
 
 import androidx.compose.animation.*
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.background
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.TextField
 import androidx.compose.material.icons.Icons
@@ -23,15 +20,23 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Popup
 import com.google.accompanist.flowlayout.FlowRow
 import com.google.accompanist.insets.*
+import kotlinx.coroutines.launch
 import xyz.xfqlittlefan.chou.ActivityViewModel
 import xyz.xfqlittlefan.chou.R
 import xyz.xfqlittlefan.chou.ui.plus
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
@@ -110,33 +115,29 @@ fun Edit(viewModel: ActivityViewModel, route: String, state: LazyListState, navi
     }
 
     Box {
+        val background by TopAppBarDefaults.smallTopAppBarColors().containerColor(
+            scrollFraction = viewModel.scrollFraction
+        )
+
         NestedScrollLayout(
             modifier = Modifier.nestedScroll(behavior.connection),
             topBar = {
-                val topBarBackground by TopAppBarDefaults.smallTopAppBarColors().containerColor(
-                    scrollFraction = viewModel.fraction
-                )
-
-                AnimatedVisibility(visible = !viewModel.isEditing) {
-                    Column(
-                        modifier = Modifier
-                            .wrapContentHeight()
-                            .background(color = topBarBackground)
-                            .padding(10.dp)
-                            .systemBarsPadding(top = false, bottom = false)
-                            .cutoutPadding(top = false, bottom = false)
+                Column(
+                    modifier = Modifier
+                        .wrapContentHeight()
+                        .background(color = background)
+                        .padding(10.dp)
+                        .systemBarsPadding(top = false, bottom = false)
+                        .cutoutPadding(top = false, bottom = false)
+                ) {
+                    TextButton(
+                        onClick = { viewModel.addItem(0) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(size = 10.dp)
                     ) {
-                        TextButton(
-                            onClick = { viewModel.addItem(0) },
-                            modifier = Modifier
-                                .padding(horizontal = 10.dp)
-                                .fillMaxWidth(),
-                            shape = RoundedCornerShape(size = 10.dp)
-                        ) {
-                            Text(
-                                text = stringResource(id = R.string.add_item)
-                            )
-                        }
+                        Text(
+                            text = stringResource(id = R.string.add_item)
+                        )
                     }
                 }
             },
@@ -195,13 +196,21 @@ fun Edit(viewModel: ActivityViewModel, route: String, state: LazyListState, navi
             }
         }
 
-        Surface {
+        Surface(color = background) {
             AnimatedVisibility(
                 visible = viewModel.isEditing,
                 enter = fadeIn() + expandVertically(),
                 exit = shrinkVertically() + fadeOut()
             ) {
-                Column(modifier = Modifier.padding(10.dp)) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(10.dp)
+                        .cutoutPadding(start = false, end = false)
+                        .navigationBarsWithImePadding()
+                        .onGloballyPositioned(viewModel.onEditLayoutGloballyPositioned)
+                ) {
                     val menuText = stringResource(viewModel.itemList[viewModel.editingItem].type)
                     var isShowingMenu by remember { mutableStateOf(false) }
 
@@ -247,7 +256,12 @@ fun Edit(viewModel: ActivityViewModel, route: String, state: LazyListState, navi
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .focusRequester(requester)
+                                            .onGloballyPositioned(viewModel.onTextFieldGloballyPositioned)
                                     )
+
+                                    EditPopup(show = viewModel.showEditPopup, value = viewModel.editingValue, onValueChange = viewModel.onTextFieldValueChanged, initialY = viewModel.textFieldY) {
+                                        viewModel.showEditPopup = false
+                                    }
                                 }
                             }
                         }
@@ -317,6 +331,67 @@ fun ButtonWithLabelAndIcon(label: String, icon: ImageVector, contentDescription:
             transitionSpec = { fadeIn() with fadeOut() }
         ) {
             Icon(imageVector = it, contentDescription = contentDescription ?: label)
+        }
+    }
+}
+
+@Composable
+fun EditPopup(
+    show: Boolean,
+    value: TextFieldValue,
+    onValueChange: (TextFieldValue) -> Unit,
+    initialY: Float,
+    onDismissRequest: () -> Unit
+) {
+    val coroutineScope = rememberCoroutineScope()
+    var showPopup by remember { mutableStateOf(show) }
+    var visible by remember { mutableStateOf(false) }
+    val realY = with(LocalDensity.current) { initialY - 10.dp.roundToPx() }
+
+    LaunchedEffect(show) {
+        if (show) showPopup = true else visible = false
+    }
+
+    if (showPopup) {
+        Popup(
+            offset = IntOffset.Zero,
+            onDismissRequest = onDismissRequest
+        ) {
+            LaunchedEffect(Unit) {
+                visible = true
+            }
+
+            AnimatedVisibility(
+                visible = visible,
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
+                Surface {
+                    Layout(
+                        content = {
+                            TextField(
+                                value = value, onValueChange = onValueChange, modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(10.dp)
+                            )
+                        },
+                        modifier = Modifier.fillMaxSize()
+                    ) { measurableList, constraints ->
+                        val placeableList = measurableList.map {
+                            it.measure(constraints)
+                        }
+                        val y = androidx.compose.animation.core.Animatable(realY)
+
+                        layout(constraints.maxWidth, constraints.maxHeight) {
+                            placeableList.forEach {
+                                it.place(0, y.value.roundToInt())
+                            }
+
+                            coroutineScope.launch { y.animateTo(0f) }
+                        }
+                    }
+                }
+            }
         }
     }
 }

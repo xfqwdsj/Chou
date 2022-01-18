@@ -72,7 +72,7 @@ class MainActivity : ComponentActivity() {
                                     }
                                 },
                                 scrollBehavior = viewModel.scrollBehavior,
-                                fraction = viewModel.fraction
+                                fraction = viewModel.scrollFraction
                             )
                         },
                         bottomBar = {

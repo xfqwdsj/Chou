@@ -13,6 +13,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
@@ -22,6 +24,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import xyz.xfqlittlefan.chou.ui.components.Edit
 import xyz.xfqlittlefan.chou.ui.components.Main
+import kotlin.math.roundToInt
 
 class ActivityViewModel : ViewModel() {
     private val homeScrollState = ScrollState(0)
@@ -29,14 +32,14 @@ class ActivityViewModel : ViewModel() {
     var currentScrollState: Any by mutableStateOf(homeScrollState)
     var globalScreen: String? by mutableStateOf(null)
 
-    private val offset
+    private val scrollOffset
         get() = when (currentScrollState) {
             is ScrollState -> (currentScrollState as ScrollState).value
             is LazyListState -> (currentScrollState as LazyListState).firstVisibleItemScrollOffset
             else -> 0
         }
-    val fraction
-        get() = if (offset > 0) 1f else 0f
+    val scrollFraction
+        get() = if (scrollOffset > 0) 1f else 0f
 
     var itemList by mutableStateOf(listOf<Item>())
         private set
@@ -99,6 +102,32 @@ class ActivityViewModel : ViewModel() {
     val confirmEditing = {
         cancelEditing()
         itemList[editingItem].value = editingValue.text
+    }
+
+    val onTextFieldValueChanged: (TextFieldValue) -> Unit = {
+        editingValue = it
+    }
+
+    var editLayoutHeight by mutableStateOf(0)
+    var textFieldHeight by mutableStateOf(0)
+    var showEditPopup by mutableStateOf(false)
+    var textFieldY by mutableStateOf(0f)
+
+    val onEditLayoutGloballyPositioned: (LayoutCoordinates) -> Unit = { coordinates ->
+        editLayoutHeight = coordinates.size.height
+        calculatePopup()
+    }
+
+    val onTextFieldGloballyPositioned: (LayoutCoordinates) -> Unit = { coordinates ->
+        textFieldHeight = coordinates.size.height
+        textFieldY = coordinates.positionInWindow().y
+        calculatePopup()
+    }
+
+    fun calculatePopup() {
+        if (editLayoutHeight <= textFieldHeight) {
+            showEditPopup = true
+        }
     }
 
     @OptIn(DelicateCoroutinesApi::class)

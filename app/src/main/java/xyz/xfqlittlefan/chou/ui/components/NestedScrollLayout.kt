@@ -109,38 +109,28 @@ class NestedScrollBehavior(coroutineScope: CoroutineScope) {
     private var previousOffset by mutableStateOf(0f)
     val connection = object : NestedScrollConnection {
         override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-            return if (canScroll) {
-                direction += available.y
-                offset = (offset + available.y).coerceIn(minimumValue = offsetLimit, maximumValue = 0f)
-                val newBlankOffset = (blankOffset + available.y).coerceIn(minimumValue = offsetLimit, maximumValue = 0f)
-                val difference = newBlankOffset - blankOffset
-                if (available.y < 0f) blankOffset = newBlankOffset
-                Log.w("!!!Chou!!!", "1\noffset=$offset\nblankOffset=$blankOffset\nconsumed=${if (difference < 0f) difference else 0f}")
-                Offset(x = 0f, y = if (difference < 0f) difference else 0f)
-            } else {
-                Log.w("!!!Chou!!!", "1\noffset=$offset\nblankOffset=$blankOffset\nconsumed=0.0")
-                Offset.Zero
-            }
+            if (!canScroll) return Offset.Zero
+            direction += available.y
+            offset = (offset + available.y).coerceIn(minimumValue = offsetLimit, maximumValue = 0f)
+            val newBlankOffset = (blankOffset + available.y).coerceIn(minimumValue = offsetLimit, maximumValue = 0f)
+            val difference = newBlankOffset - blankOffset
+            if (available.y < 0f) blankOffset = newBlankOffset
+            return Offset(x = 0f, y = if (difference < 0f) difference else 0f)
         }
 
         override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
-            return if (canScroll) {
-                contentOffset += consumed.y
-                direction = consumed.y + available.y
-                if (offset == 0f || offset == offsetLimit) {
-                    if (available.y > 0f) {
-                        contentOffset = 0f
-                    }
+            if (!canScroll) return Offset.Zero
+            contentOffset += consumed.y
+            direction = consumed.y + available.y
+            if (offset == 0f || offset == offsetLimit) {
+                if (available.y > 0f) {
+                    contentOffset = 0f
                 }
-                val newOffset = (blankOffset + available.y).coerceIn(minimumValue = offsetLimit, maximumValue = 0f)
-                val difference = newOffset - blankOffset
-                Log.i("!!!Chou!!!", "2\nconsumed=${consumed.y}\navailable=${available.y}\ncommitted=${if (available.y > 0f) difference else 0f}")
-                if (available.y > 0f) blankOffset = newOffset
-                Offset(x = 0f, y = if (available.y > 0f) difference else 0f)
-            } else {
-                Log.i("!!!Chou!!!", "2\nconsumed=${consumed.y}\navailable=${available.y}\ncommitted=0.0")
-                Offset.Zero
             }
+            val newOffset = (blankOffset + available.y).coerceIn(minimumValue = offsetLimit, maximumValue = 0f)
+            val difference = newOffset - blankOffset
+            if (available.y > 0f) blankOffset = newOffset
+            return Offset(x = 0f, y = if (available.y > 0f) difference else 0f)
         }
 
         override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
@@ -154,7 +144,6 @@ class NestedScrollBehavior(coroutineScope: CoroutineScope) {
                 )
                 direction = 0f
             }
-            Log.e("!!!Chou!!!", "4\noffset=$offset\nblankOffset=$blankOffset\ndirection=$direction")
             return Velocity.Zero
         }
     }

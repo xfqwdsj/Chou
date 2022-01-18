@@ -25,8 +25,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.flowlayout.FlowRow
@@ -85,7 +83,7 @@ fun Main(viewModel: ActivityViewModel, route: String, state: ScrollState, naviga
                     }
                     AnimatedVisibility(visible = viewModel.appState == 0) {
                         Button(
-                            onClick = { viewModel.startSelecting() }
+                            onClick = viewModel.startSelecting
                         ) {
                             Text(text = stringResource(id = R.string.start))
                         }
@@ -111,165 +109,165 @@ fun Edit(viewModel: ActivityViewModel, route: String, state: LazyListState, navi
         viewModel.globalScreen?.let { if (it != route) navigateTo(it) }
     }
 
-    NestedScrollLayout(
-        modifier = Modifier.nestedScroll(behavior.connection),
-        topBar = {
-            val topBarBackground by TopAppBarDefaults.smallTopAppBarColors().containerColor(
-                scrollFraction = viewModel.fraction
-            )
+    Box {
+        NestedScrollLayout(
+            modifier = Modifier.nestedScroll(behavior.connection),
+            topBar = {
+                val topBarBackground by TopAppBarDefaults.smallTopAppBarColors().containerColor(
+                    scrollFraction = viewModel.fraction
+                )
 
-            Column(
-                modifier = Modifier
-                    .wrapContentHeight()
-                    .background(color = topBarBackground)
-                    .systemBarsPadding(top = false, bottom = false)
-                    .cutoutPadding(top = false, bottom = false)
-            ) {
-                AnimatedVisibility(visible = viewModel.isEditing) {
-                    Column(modifier = Modifier.padding(horizontal = 10.dp)) {
-                        val menuText = stringResource(viewModel.itemList[viewModel.editingItem].type)
-                        var isShowingMenu by remember { mutableStateOf(false) }
-
-                        Spacer(Modifier.height(5.dp))
-                        ButtonWithLabelAndIcon(label = menuText, icon = Icons.Default.MoreVert, contentDescription = "$menuText/${stringResource(R.string.click_to_select)}") {
-                            isShowingMenu = true
-                        }
-                        Box {
-                            ChouDropdownMenu(expanded = isShowingMenu, onDismissRequest = { isShowingMenu = false }) {
-                                viewModel.itemTypeList.forEach { type ->
-                                    DropdownMenuItem(
-                                        onClick = {
-                                            isShowingMenu = false
-                                            viewModel.itemList[viewModel.editingItem].type = type
-                                        }
-                                    ) {
-                                        Text(stringResource(type))
-                                    }
-                                }
-                            }
-                        }
-                        Spacer(Modifier.height(5.dp))
-                        AnimatedContent(
-                            targetState = viewModel.itemList[viewModel.editingItem].type,
-                            modifier = Modifier.weight(1f, fill = false),
-                            transitionSpec = { fadeIn() with fadeOut() }
-                        ) { type ->
-                            when (type) {
-                                R.string.item_type_0 -> {
-                                    val requester = FocusRequester()
-
-                                    SideEffect {
-                                        requester.requestFocus()
-                                    }
-
-                                    Box(
-                                        modifier = Modifier.clip(shape = RoundedCornerShape(size = 10.dp))
-                                    ) {
-                                        TextField(
-                                            value = viewModel.editingValue,
-                                            onValueChange = {
-                                                viewModel.editingValue = it
-                                            },
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .focusRequester(requester)
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                        Spacer(Modifier.width(10.dp))
-                        FlowRow(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .navigationBarsPadding(start = false, end = false)
-                        ) {
-                            ButtonWithIconAndLabel(label = stringResource(id = android.R.string.cancel), icon = Icons.Default.Close) {
-                                viewModel.isEditing = false
-                                viewModel.globalScreen = null
-                            }
-                            ButtonWithIconAndLabel(label = stringResource(id = android.R.string.ok), icon = Icons.Default.Done) {
-                                viewModel.itemList[viewModel.editingItem].value = viewModel.editingValue.text
-                                viewModel.isEditing = false
-                                viewModel.globalScreen = null
-                            }
-                        }
-                    }
-                }
                 AnimatedVisibility(visible = !viewModel.isEditing) {
-                    Spacer(Modifier.height(5.dp))
-                    TextButton(
-                        onClick = { viewModel.addItem(0) },
-                        modifier = Modifier
-                            .padding(horizontal = 10.dp)
-                            .fillMaxWidth(),
-                        shape = RoundedCornerShape(size = 10.dp)
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.add_item)
-                        )
-                    }
-                }
-                Spacer(Modifier.height(5.dp))
-            }
-        },
-        nestedScrollBehavior = behavior
-    ) {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            state = state,
-            contentPadding = rememberInsetsPaddingValues(insets = LocalWindowInsets.current.systemBars, applyTop = false, applyBottom = false)
-                .plus(rememberInsetsPaddingValues(insets = LocalWindowInsets.current.displayCutout, applyTop = false, applyBottom = false), LocalLayoutDirection.current)
-        ) {
-            itemsIndexed(items = viewModel.itemList, key = { _, item -> item.toString() }) { index, item ->
-                Surface(
-                    modifier = Modifier
-                        .padding(horizontal = 10.dp, vertical = 5.dp)
-                        .fillMaxWidth()
-                        .animateItemPlacement(),
-                    shape = RoundedCornerShape(10.dp),
-                    tonalElevation = 4.dp
-                ) {
                     Column(
                         modifier = Modifier
-                            .fillMaxWidth()
+                            .wrapContentHeight()
+                            .background(color = topBarBackground)
+                            .padding(10.dp)
+                            .systemBarsPadding(top = false, bottom = false)
+                            .cutoutPadding(top = false, bottom = false)
                     ) {
-                        Spacer(Modifier.height(20.dp))
-                        CompositionLocalProvider(LocalContentColor provides LocalContentColor.current.copy(alpha = 0.38f)) {
+                        TextButton(
+                            onClick = { viewModel.addItem(0) },
+                            modifier = Modifier
+                                .padding(horizontal = 10.dp)
+                                .fillMaxWidth(),
+                            shape = RoundedCornerShape(size = 10.dp)
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.add_item)
+                            )
+                        }
+                    }
+                }
+            },
+            nestedScrollBehavior = behavior
+        ) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                state = state,
+                contentPadding = rememberInsetsPaddingValues(insets = LocalWindowInsets.current.systemBars, applyTop = false, applyBottom = false)
+                    .plus(rememberInsetsPaddingValues(insets = LocalWindowInsets.current.displayCutout, applyTop = false, applyBottom = false), LocalLayoutDirection.current)
+            ) {
+                itemsIndexed(items = viewModel.itemList, key = { _, item -> item.toString() }) { index, item ->
+                    Surface(
+                        modifier = Modifier
+                            .padding(horizontal = 10.dp, vertical = 5.dp)
+                            .fillMaxWidth()
+                            .animateItemPlacement(),
+                        shape = RoundedCornerShape(10.dp),
+                        tonalElevation = 4.dp
+                    ) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Spacer(Modifier.height(20.dp))
+                            CompositionLocalProvider(LocalContentColor provides LocalContentColor.current.copy(alpha = 0.38f)) {
+                                AnimatedContent(
+                                    targetState = "${index + 1}. ${stringResource(id = item.type)}",
+                                    transitionSpec = { fadeIn() with fadeOut() }
+                                ) {
+                                    Text(text = it, modifier = Modifier.padding(horizontal = 20.dp))
+                                }
+                            }
+                            Spacer(Modifier.height(5.dp))
                             AnimatedContent(
-                                targetState = "${index + 1}. ${stringResource(id = item.type)}",
+                                targetState = item.value,
                                 transitionSpec = { fadeIn() with fadeOut() }
                             ) {
                                 Text(text = it, modifier = Modifier.padding(horizontal = 20.dp))
                             }
-                        }
-                        Spacer(Modifier.height(5.dp))
-                        AnimatedContent(
-                            targetState = item.value,
-                            transitionSpec = { fadeIn() with fadeOut() }
-                        ) {
-                            Text(text = it, modifier = Modifier.padding(horizontal = 20.dp))
-                        }
-                        Spacer(Modifier.height(10.dp))
-                        FlowRow(modifier = Modifier.padding(horizontal = 10.dp)) {
-                            ButtonWithIconAndLabel(label = stringResource(id = R.string.add_item), icon = Icons.Default.Add) {
-                                viewModel.addItem(index + 1)
+                            Spacer(Modifier.height(10.dp))
+                            FlowRow(modifier = Modifier.padding(horizontal = 10.dp)) {
+                                ButtonWithIconAndLabel(label = stringResource(id = R.string.add_item), icon = Icons.Default.Add) {
+                                    viewModel.addItem(index + 1)
+                                }
+                                ButtonWithIconAndLabel(label = stringResource(id = R.string.remove_item), icon = Icons.Default.Delete) {
+                                    viewModel.removeItem(index)
+                                }
+                                ButtonWithIconAndLabel(label = stringResource(id = R.string.edit_item), icon = Icons.Default.Edit) {
+                                    viewModel.editItem(index)
+                                }
                             }
-                            ButtonWithIconAndLabel(label = stringResource(id = R.string.remove_item), icon = Icons.Default.Delete) {
-                                viewModel.removeItem(index)
-                            }
-                            ButtonWithIconAndLabel(label = stringResource(id = R.string.edit_item), icon = Icons.Default.Edit) {
-                                viewModel.isEditing = true
-                                viewModel.editingItem = index
-                                viewModel.globalScreen = "edit"
-                                val initValue = viewModel.itemList[viewModel.editingItem].value
-                                viewModel.editingValue = TextFieldValue(
-                                    text = initValue,
-                                    selection = TextRange(index = initValue.length)
-                                )
+                            Spacer(Modifier.height(10.dp))
+                        }
+                    }
+                }
+            }
+        }
+
+        Surface {
+            AnimatedVisibility(
+                visible = viewModel.isEditing,
+                enter = fadeIn() + expandVertically(),
+                exit = shrinkVertically() + fadeOut()
+            ) {
+                Column(modifier = Modifier.padding(10.dp)) {
+                    val menuText = stringResource(viewModel.itemList[viewModel.editingItem].type)
+                    var isShowingMenu by remember { mutableStateOf(false) }
+
+                    ButtonWithLabelAndIcon(label = menuText, icon = Icons.Default.MoreVert, contentDescription = "$menuText/${stringResource(R.string.click_to_select)}") {
+                        isShowingMenu = true
+                    }
+                    Box {
+                        ChouDropdownMenu(expanded = isShowingMenu, onDismissRequest = { isShowingMenu = false }) {
+                            viewModel.itemTypeList.forEach { type ->
+                                DropdownMenuItem(
+                                    onClick = {
+                                        isShowingMenu = false
+                                        viewModel.itemList[viewModel.editingItem].type = type
+                                    }
+                                ) {
+                                    Text(stringResource(type))
+                                }
                             }
                         }
-                        Spacer(Modifier.height(10.dp))
+                    }
+                    Spacer(Modifier.height(5.dp))
+                    AnimatedContent(
+                        targetState = viewModel.itemList[viewModel.editingItem].type,
+                        modifier = Modifier.weight(1f, fill = false),
+                        transitionSpec = { fadeIn() with fadeOut() }
+                    ) { type ->
+                        when (type) {
+                            R.string.item_type_0 -> {
+                                val requester = FocusRequester()
+
+                                SideEffect {
+                                    requester.requestFocus()
+                                }
+
+                                Box(
+                                    modifier = Modifier.clip(shape = RoundedCornerShape(size = 10.dp))
+                                ) {
+                                    TextField(
+                                        value = viewModel.editingValue,
+                                        onValueChange = {
+                                            viewModel.editingValue = it
+                                        },
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .focusRequester(requester)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    Spacer(Modifier.width(10.dp))
+                    FlowRow(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .navigationBarsPadding(start = false, end = false)
+                    ) {
+                        ButtonWithIconAndLabel(
+                            label = stringResource(id = android.R.string.cancel),
+                            icon = Icons.Default.Close,
+                            onClick = viewModel.cancelEditing
+                        )
+                        ButtonWithIconAndLabel(
+                            label = stringResource(id = android.R.string.ok),
+                            icon = Icons.Default.Done,
+                            onClick = viewModel.confirmEditing
+                        )
                     }
                 }
             }

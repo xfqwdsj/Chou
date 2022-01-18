@@ -13,6 +13,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -79,8 +80,29 @@ class ActivityViewModel : ViewModel() {
         }
     }
 
+    fun editItem(position: Int) {
+        isEditing = true
+        editingItem = position
+        globalScreen = "edit"
+        val initValue = itemList[editingItem].value
+        editingValue = TextFieldValue(
+            text = initValue,
+            selection = TextRange(index = initValue.length)
+        )
+    }
+
+    val cancelEditing =  {
+        isEditing = false
+        globalScreen = null
+    }
+
+    val confirmEditing = {
+        cancelEditing()
+        itemList[editingItem].value = editingValue.text
+    }
+
     @OptIn(DelicateCoroutinesApi::class)
-    fun startSelecting() {
+    val startSelecting: () -> Unit = {
         appState = 1
         globalScreen = "home"
         isEditing = false

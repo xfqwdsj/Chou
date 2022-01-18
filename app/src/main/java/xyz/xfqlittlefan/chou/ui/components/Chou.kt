@@ -202,17 +202,17 @@ fun Edit(viewModel: ActivityViewModel, route: String, state: LazyListState, navi
                 enter = fadeIn() + expandVertically(),
                 exit = shrinkVertically() + fadeOut()
             ) {
-                BoxWithConstraints {
+                BoxWithConstraints(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(10.dp)
+                        .cutoutPadding(top = false, bottom = false)
+                        .navigationBarsWithImePadding()
+                ) {
                     val constraints = constraints
 
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .verticalScroll(rememberScrollState())
-                            .padding(10.dp)
-                            .cutoutPadding(top = false, bottom = false)
-                            .navigationBarsWithImePadding()
-                    ) {
+                    Column {
                         val menuText = stringResource(viewModel.itemList[viewModel.editingItem].type)
                         var isShowingMenu by remember { mutableStateOf(false) }
 

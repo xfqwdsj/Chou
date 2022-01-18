@@ -207,7 +207,7 @@ fun Edit(viewModel: ActivityViewModel, route: String, state: LazyListState, navi
                         .fillMaxSize()
                         .verticalScroll(rememberScrollState())
                         .padding(10.dp)
-                        .cutoutPadding(start = false, end = false)
+                        .cutoutPadding(top = false, bottom = false)
                         .navigationBarsWithImePadding()
                         .onGloballyPositioned(viewModel.onEditLayoutGloballyPositioned)
                 ) {
@@ -234,7 +234,6 @@ fun Edit(viewModel: ActivityViewModel, route: String, state: LazyListState, navi
                     Spacer(Modifier.height(5.dp))
                     AnimatedContent(
                         targetState = viewModel.itemList[viewModel.editingItem].type,
-                        modifier = Modifier.weight(1f, fill = false),
                         transitionSpec = { fadeIn() with fadeOut() }
                     ) { type ->
                         when (type) {

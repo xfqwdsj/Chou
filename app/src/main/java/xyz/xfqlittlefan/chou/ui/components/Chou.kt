@@ -20,23 +20,15 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.Layout
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Popup
 import com.google.accompanist.flowlayout.FlowRow
 import com.google.accompanist.insets.*
-import kotlinx.coroutines.launch
 import xyz.xfqlittlefan.chou.ActivityViewModel
 import xyz.xfqlittlefan.chou.R
 import xyz.xfqlittlefan.chou.ui.plus
-import kotlin.math.roundToInt
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
@@ -202,92 +194,79 @@ fun Edit(viewModel: ActivityViewModel, route: String, state: LazyListState, navi
                 enter = fadeIn() + expandVertically(),
                 exit = shrinkVertically() + fadeOut()
             ) {
-                BoxWithConstraints(
+                Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .navigationBarsWithImePadding()
-                ) {
-                    val constraints = constraints
-
-                    Column(
-                        modifier = Modifier
-                            .verticalScroll(rememberScrollState())
+                        .verticalScroll(rememberScrollState())
                         .padding(10.dp)
                         .cutoutPadding(top = false, bottom = false)
+                ) {
+                    val menuText = stringResource(viewModel.itemList[viewModel.editingItem].type)
+                    var isShowingMenu by remember { mutableStateOf(false) }
+
+                    ButtonWithLabelAndIcon(label = menuText, icon = Icons.Default.MoreVert, contentDescription = "$menuText/${stringResource(R.string.click_to_select)}") {
+                        isShowingMenu = true
+                    }
+                    Box {
+                        ChouDropdownMenu(expanded = isShowingMenu, onDismissRequest = { isShowingMenu = false }) {
+                            viewModel.itemTypeList.forEach { type ->
+                                DropdownMenuItem(
+                                    onClick = {
+                                        isShowingMenu = false
+                                        viewModel.itemList[viewModel.editingItem].type = type
+                                    }
+                                ) {
+                                    Text(stringResource(type))
+                                }
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(5.dp))
+                    AnimatedContent(
+                        targetState = viewModel.itemList[viewModel.editingItem].type,
+                        transitionSpec = { fadeIn() with fadeOut() }
+                    ) { type ->
+                        when (type) {
+                            R.string.item_type_0 -> {
+                                val requester = FocusRequester()
+
+                                SideEffect {
+                                    requester.requestFocus()
+                                }
+
+                                Box(
+                                    modifier = Modifier.clip(shape = RoundedCornerShape(size = 10.dp))
+                                ) {
+                                    TextField(
+                                        value = viewModel.editingValue,
+                                        onValueChange = {
+                                            viewModel.editingValue = it
+                                        },
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .focusRequester(requester)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    Spacer(Modifier.width(10.dp))
+                    FlowRow(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .navigationBarsPadding(start = false, end = false)
                     ) {
-                        val menuText = stringResource(viewModel.itemList[viewModel.editingItem].type)
-                        var isShowingMenu by remember { mutableStateOf(false) }
-
-                        ButtonWithLabelAndIcon(label = menuText, icon = Icons.Default.MoreVert, contentDescription = "$menuText/${stringResource(R.string.click_to_select)}") {
-                            isShowingMenu = true
-                        }
-                        Box {
-                            ChouDropdownMenu(expanded = isShowingMenu, onDismissRequest = { isShowingMenu = false }) {
-                                viewModel.itemTypeList.forEach { type ->
-                                    DropdownMenuItem(
-                                        onClick = {
-                                            isShowingMenu = false
-                                            viewModel.itemList[viewModel.editingItem].type = type
-                                        }
-                                    ) {
-                                        Text(stringResource(type))
-                                    }
-                                }
-                            }
-                        }
-                        Spacer(Modifier.height(5.dp))
-                        AnimatedContent(
-                            targetState = viewModel.itemList[viewModel.editingItem].type,
-                            transitionSpec = { fadeIn() with fadeOut() }
-                        ) { type ->
-                            when (type) {
-                                R.string.item_type_0 -> {
-                                    val requester = FocusRequester()
-
-                                    SideEffect {
-                                        requester.requestFocus()
-                                    }
-
-                                    Box(
-                                        modifier = Modifier.clip(shape = RoundedCornerShape(size = 10.dp))
-                                    ) {
-                                        TextField(
-                                            value = viewModel.editingValue,
-                                            onValueChange = {
-                                                viewModel.editingValue = it
-                                            },
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .focusRequester(requester)
-                                                .onGloballyPositioned { coordinates ->
-                                                    viewModel.calculatePopup(coordinates, constraints.maxHeight)
-                                                }
-                                        )
-
-                                        EditPopup(show = viewModel.showEditPopup, value = viewModel.editingValue, onValueChange = viewModel.onTextFieldValueChanged, initialY = viewModel.textFieldY) {
-                                            viewModel.showEditPopup = false
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        Spacer(Modifier.width(10.dp))
-                        FlowRow(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .navigationBarsPadding(start = false, end = false)
-                        ) {
-                            ButtonWithIconAndLabel(
-                                label = stringResource(id = android.R.string.cancel),
-                                icon = Icons.Default.Close,
-                                onClick = viewModel.cancelEditing
-                            )
-                            ButtonWithIconAndLabel(
-                                label = stringResource(id = android.R.string.ok),
-                                icon = Icons.Default.Done,
-                                onClick = viewModel.confirmEditing
-                            )
-                        }
+                        ButtonWithIconAndLabel(
+                            label = stringResource(id = android.R.string.cancel),
+                            icon = Icons.Default.Close,
+                            onClick = viewModel.cancelEditing
+                        )
+                        ButtonWithIconAndLabel(
+                            label = stringResource(id = android.R.string.ok),
+                            icon = Icons.Default.Done,
+                            onClick = viewModel.confirmEditing
+                        )
                     }
                 }
             }
@@ -337,73 +316,6 @@ fun ButtonWithLabelAndIcon(label: String, icon: ImageVector, contentDescription:
             transitionSpec = { fadeIn() with fadeOut() }
         ) {
             Icon(imageVector = it, contentDescription = contentDescription ?: label)
-        }
-    }
-}
-
-@Composable
-fun EditPopup(
-    show: Boolean,
-    value: TextFieldValue,
-    onValueChange: (TextFieldValue) -> Unit,
-    initialY: Float,
-    onDismissRequest: () -> Unit
-) {
-    val coroutineScope = rememberCoroutineScope()
-    var showPopup by remember { mutableStateOf(show) }
-    var visible by remember { mutableStateOf(false) }
-    val realY = with(LocalDensity.current) { initialY - 10.dp.roundToPx() }
-
-    LaunchedEffect(show) {
-        if (show) showPopup = true else visible = false
-    }
-
-    if (showPopup) {
-        Popup(
-            offset = IntOffset.Zero,
-            onDismissRequest = onDismissRequest
-        ) {
-            LaunchedEffect(Unit) {
-                visible = true
-            }
-
-            AnimatedVisibility(
-                visible = visible,
-                enter = fadeIn(),
-                exit = fadeOut()
-            ) {
-                DisposableEffect(Unit) {
-                    onDispose {
-                        showPopup = false
-                    }
-                }
-
-                Surface {
-                    Layout(
-                        content = {
-                            TextField(
-                                value = value, onValueChange = onValueChange, modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(10.dp)
-                            )
-                        },
-                        modifier = Modifier.fillMaxSize()
-                    ) { measurableList, constraints ->
-                        val placeableList = measurableList.map {
-                            it.measure(constraints)
-                        }
-                        val y = androidx.compose.animation.core.Animatable(realY)
-
-                        layout(constraints.maxWidth, constraints.maxHeight) {
-                            placeableList.forEach {
-                                it.place(0, y.value.roundToInt())
-                            }
-
-                            coroutineScope.launch { y.animateTo(0f) }
-                        }
-                    }
-                }
-            }
         }
     }
 }

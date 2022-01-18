@@ -109,17 +109,6 @@ class ActivityViewModel : ViewModel() {
         editingValue = it
     }
 
-    var showEditPopup by mutableStateOf(false)
-    var textFieldY by mutableStateOf(0f)
-
-    fun calculatePopup(coordinates: LayoutCoordinates, height: Int) {
-        if (height <= coordinates.size.height) {
-            textFieldY = coordinates.positionInWindow().y
-            showEditPopup = true
-        }
-        Log.i("Chou", "calculatePopup() invoked,\neditLayoutHeight=$height,\ntextFieldHeight=${coordinates.size.height},\nshowEditPopup=$showEditPopup,\ntextFieldY=$textFieldY")
-    }
-
     @OptIn(DelicateCoroutinesApi::class)
     val startSelecting: () -> Unit = {
         appState = 1

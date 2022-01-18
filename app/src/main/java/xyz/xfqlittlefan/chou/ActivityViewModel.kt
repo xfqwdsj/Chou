@@ -109,27 +109,15 @@ class ActivityViewModel : ViewModel() {
         editingValue = it
     }
 
-    var editLayoutHeight by mutableStateOf(0)
-    var textFieldHeight by mutableStateOf(0)
     var showEditPopup by mutableStateOf(false)
     var textFieldY by mutableStateOf(0f)
 
-    val onEditLayoutGloballyPositioned: (LayoutCoordinates) -> Unit = { coordinates ->
-        editLayoutHeight = coordinates.size.height
-        calculatePopup()
-    }
-
-    val onTextFieldGloballyPositioned: (LayoutCoordinates) -> Unit = { coordinates ->
-        textFieldHeight = coordinates.size.height
-        textFieldY = coordinates.positionInWindow().y
-        calculatePopup()
-    }
-
-    private fun calculatePopup() {
-        if (editLayoutHeight <= textFieldHeight) {
+    fun calculatePopup(coordinates: LayoutCoordinates, height: Int) {
+        if (height <= coordinates.size.height) {
+            textFieldY = coordinates.positionInWindow().y
             showEditPopup = true
         }
-        Log.i("Chou", "calculatePopup() invoked,\neditLayoutHeight=$editLayoutHeight,\ntextFieldHeight=$textFieldHeight,\nshowEditPopup=$showEditPopup,\ntextFieldY=$textFieldY")
+        Log.i("Chou", "calculatePopup() invoked,\neditLayoutHeight=$height,\ntextFieldHeight=${coordinates.size.height},\nshowEditPopup=$showEditPopup,\ntextFieldY=$textFieldY")
     }
 
     @OptIn(DelicateCoroutinesApi::class)

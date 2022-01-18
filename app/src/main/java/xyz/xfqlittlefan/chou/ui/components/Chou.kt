@@ -202,85 +202,90 @@ fun Edit(viewModel: ActivityViewModel, route: String, state: LazyListState, navi
                 enter = fadeIn() + expandVertically(),
                 exit = shrinkVertically() + fadeOut()
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                        .padding(10.dp)
-                        .cutoutPadding(top = false, bottom = false)
-                        .navigationBarsWithImePadding()
-                        .onGloballyPositioned(viewModel.onEditLayoutGloballyPositioned)
-                ) {
-                    val menuText = stringResource(viewModel.itemList[viewModel.editingItem].type)
-                    var isShowingMenu by remember { mutableStateOf(false) }
+                BoxWithConstraints {
+                    val constraints = constraints
 
-                    ButtonWithLabelAndIcon(label = menuText, icon = Icons.Default.MoreVert, contentDescription = "$menuText/${stringResource(R.string.click_to_select)}") {
-                        isShowingMenu = true
-                    }
-                    Box {
-                        ChouDropdownMenu(expanded = isShowingMenu, onDismissRequest = { isShowingMenu = false }) {
-                            viewModel.itemTypeList.forEach { type ->
-                                DropdownMenuItem(
-                                    onClick = {
-                                        isShowingMenu = false
-                                        viewModel.itemList[viewModel.editingItem].type = type
-                                    }
-                                ) {
-                                    Text(stringResource(type))
-                                }
-                            }
-                        }
-                    }
-                    Spacer(Modifier.height(5.dp))
-                    AnimatedContent(
-                        targetState = viewModel.itemList[viewModel.editingItem].type,
-                        transitionSpec = { fadeIn() with fadeOut() }
-                    ) { type ->
-                        when (type) {
-                            R.string.item_type_0 -> {
-                                val requester = FocusRequester()
-
-                                SideEffect {
-                                    requester.requestFocus()
-                                }
-
-                                Box(
-                                    modifier = Modifier.clip(shape = RoundedCornerShape(size = 10.dp))
-                                ) {
-                                    TextField(
-                                        value = viewModel.editingValue,
-                                        onValueChange = {
-                                            viewModel.editingValue = it
-                                        },
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .focusRequester(requester)
-                                            .onGloballyPositioned(viewModel.onTextFieldGloballyPositioned)
-                                    )
-
-                                    EditPopup(show = viewModel.showEditPopup, value = viewModel.editingValue, onValueChange = viewModel.onTextFieldValueChanged, initialY = viewModel.textFieldY) {
-                                        viewModel.showEditPopup = false
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    Spacer(Modifier.width(10.dp))
-                    FlowRow(
+                    Column(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .navigationBarsPadding(start = false, end = false)
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState())
+                            .padding(10.dp)
+                            .cutoutPadding(top = false, bottom = false)
+                            .navigationBarsWithImePadding()
                     ) {
-                        ButtonWithIconAndLabel(
-                            label = stringResource(id = android.R.string.cancel),
-                            icon = Icons.Default.Close,
-                            onClick = viewModel.cancelEditing
-                        )
-                        ButtonWithIconAndLabel(
-                            label = stringResource(id = android.R.string.ok),
-                            icon = Icons.Default.Done,
-                            onClick = viewModel.confirmEditing
-                        )
+                        val menuText = stringResource(viewModel.itemList[viewModel.editingItem].type)
+                        var isShowingMenu by remember { mutableStateOf(false) }
+
+                        ButtonWithLabelAndIcon(label = menuText, icon = Icons.Default.MoreVert, contentDescription = "$menuText/${stringResource(R.string.click_to_select)}") {
+                            isShowingMenu = true
+                        }
+                        Box {
+                            ChouDropdownMenu(expanded = isShowingMenu, onDismissRequest = { isShowingMenu = false }) {
+                                viewModel.itemTypeList.forEach { type ->
+                                    DropdownMenuItem(
+                                        onClick = {
+                                            isShowingMenu = false
+                                            viewModel.itemList[viewModel.editingItem].type = type
+                                        }
+                                    ) {
+                                        Text(stringResource(type))
+                                    }
+                                }
+                            }
+                        }
+                        Spacer(Modifier.height(5.dp))
+                        AnimatedContent(
+                            targetState = viewModel.itemList[viewModel.editingItem].type,
+                            transitionSpec = { fadeIn() with fadeOut() }
+                        ) { type ->
+                            when (type) {
+                                R.string.item_type_0 -> {
+                                    val requester = FocusRequester()
+
+                                    SideEffect {
+                                        requester.requestFocus()
+                                    }
+
+                                    Box(
+                                        modifier = Modifier.clip(shape = RoundedCornerShape(size = 10.dp))
+                                    ) {
+                                        TextField(
+                                            value = viewModel.editingValue,
+                                            onValueChange = {
+                                                viewModel.editingValue = it
+                                            },
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .focusRequester(requester)
+                                                .onGloballyPositioned { coordinates ->
+                                                    viewModel.calculatePopup(coordinates, constraints.maxHeight)
+                                                }
+                                        )
+
+                                        EditPopup(show = viewModel.showEditPopup, value = viewModel.editingValue, onValueChange = viewModel.onTextFieldValueChanged, initialY = viewModel.textFieldY) {
+                                            viewModel.showEditPopup = false
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        Spacer(Modifier.width(10.dp))
+                        FlowRow(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .navigationBarsPadding(start = false, end = false)
+                        ) {
+                            ButtonWithIconAndLabel(
+                                label = stringResource(id = android.R.string.cancel),
+                                icon = Icons.Default.Close,
+                                onClick = viewModel.cancelEditing
+                            )
+                            ButtonWithIconAndLabel(
+                                label = stringResource(id = android.R.string.ok),
+                                icon = Icons.Default.Done,
+                                onClick = viewModel.confirmEditing
+                            )
+                        }
                     }
                 }
             }

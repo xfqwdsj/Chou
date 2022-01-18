@@ -205,14 +205,16 @@ fun Edit(viewModel: ActivityViewModel, route: String, state: LazyListState, navi
                 BoxWithConstraints(
                     modifier = Modifier
                         .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                        .padding(10.dp)
-                        .cutoutPadding(top = false, bottom = false)
                         .navigationBarsWithImePadding()
                 ) {
                     val constraints = constraints
 
-                    Column {
+                    Column(
+                        modifier = Modifier
+                            .verticalScroll(rememberScrollState())
+                        .padding(10.dp)
+                        .cutoutPadding(top = false, bottom = false)
+                    ) {
                         val menuText = stringResource(viewModel.itemList[viewModel.editingItem].type)
                         var isShowingMenu by remember { mutableStateOf(false) }
 

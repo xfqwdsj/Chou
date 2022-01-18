@@ -365,6 +365,12 @@ fun EditPopup(
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {
+                DisposableEffect(Unit) {
+                    onDispose {
+                        showPopup = false
+                    }
+                }
+
                 Surface {
                     Layout(
                         content = {

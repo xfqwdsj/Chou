@@ -1,5 +1,6 @@
 package xyz.xfqlittlefan.chou
 
+import android.util.Log
 import androidx.annotation.StringRes
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.lazy.LazyListState
@@ -124,10 +125,11 @@ class ActivityViewModel : ViewModel() {
         calculatePopup()
     }
 
-    fun calculatePopup() {
+    private fun calculatePopup() {
         if (editLayoutHeight <= textFieldHeight) {
             showEditPopup = true
         }
+        Log.i("Chou", "calculatePopup() invoked,\neditLayoutHeight=$editLayoutHeight,\ntextFieldHeight=$textFieldHeight,\nshowEditPopup=$showEditPopup,\ntextFieldY=$textFieldY")
     }
 
     @OptIn(DelicateCoroutinesApi::class)

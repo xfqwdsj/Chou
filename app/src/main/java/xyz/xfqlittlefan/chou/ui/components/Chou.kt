@@ -234,15 +234,34 @@ fun Edit(padding: PaddingValues, viewModel: ActivityViewModel, route: String, st
                                     )
                                 }
                             }
+                            R.string.item_type_1 -> {
+
+                            }
                         }
                     }
                     Spacer(Modifier.width(10.dp))
                     FlowRow(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .navigationBarsPadding(start = false, end = false)
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        ButtonWithLabelAndIcon(label = menuText, icon = Icons.Default.MoreVert, contentDescription = "$menuText/${stringResource(R.string.click_to_select)}") {
+                        ButtonWithIconAndLabel(
+                            label = menuText,
+                            icon = Icons.Default.MoreVert,
+                            menu = {
+                                ChouDropdownMenu(expanded = isShowingMenu, onDismissRequest = { isShowingMenu = false }) {
+                                    viewModel.itemTypeList.forEach { type ->
+                                        DropdownMenuItem(
+                                            onClick = {
+                                                isShowingMenu = false
+                                                viewModel.itemList[viewModel.editingItem].type = type
+                                            }
+                                        ) {
+                                            Text(stringResource(type))
+                                        }
+                                    }
+                                }
+                            },
+                            contentDescription = "$menuText/${stringResource(R.string.click_to_select)}"
+                        ) {
                             isShowingMenu = true
                         }
                         ButtonWithIconAndLabel(
@@ -256,20 +275,6 @@ fun Edit(padding: PaddingValues, viewModel: ActivityViewModel, route: String, st
                             onClick = viewModel.confirmEditing
                         )
                     }
-                    Box {
-                        ChouDropdownMenu(expanded = isShowingMenu, onDismissRequest = { isShowingMenu = false }) {
-                            viewModel.itemTypeList.forEach { type ->
-                                DropdownMenuItem(
-                                    onClick = {
-                                        isShowingMenu = false
-                                        viewModel.itemList[viewModel.editingItem].type = type
-                                    }
-                                ) {
-                                    Text(stringResource(type))
-                                }
-                            }
-                        }
-                    }
                 }
             }
         }
@@ -278,46 +283,28 @@ fun Edit(padding: PaddingValues, viewModel: ActivityViewModel, route: String, st
 
 @ExperimentalAnimationApi
 @Composable
-fun ButtonWithIconAndLabel(label: String, icon: ImageVector, contentDescription: String? = null, onClick: () -> Unit) {
+fun ButtonWithIconAndLabel(label: String, icon: ImageVector, menu: @Composable () -> Unit = {}, contentDescription: String? = null, onClick: () -> Unit) {
     TextButton(
         onClick = onClick,
         modifier = Modifier.padding(5.dp)
     ) {
-        AnimatedContent(
-            targetState = icon,
-            transitionSpec = { fadeIn() with fadeOut() }
-        ) {
-            Icon(imageVector = it, contentDescription = contentDescription ?: label)
-        }
-        Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-        AnimatedContent(
-            targetState = label,
-            transitionSpec = { fadeIn() with fadeOut() }
-        ) {
-            Text(it)
-        }
-    }
-}
-
-@ExperimentalAnimationApi
-@Composable
-fun ButtonWithLabelAndIcon(label: String, icon: ImageVector, contentDescription: String? = null, onClick: () -> Unit) {
-    TextButton(
-        onClick = onClick,
-        modifier = Modifier.padding(5.dp)
-    ) {
-        AnimatedContent(
-            targetState = label,
-            transitionSpec = { fadeIn() with fadeOut() }
-        ) {
-            Text(it)
-        }
-        Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-        AnimatedContent(
-            targetState = icon,
-            transitionSpec = { fadeIn() with fadeOut() }
-        ) {
-            Icon(imageVector = it, contentDescription = contentDescription ?: label)
+        Column {
+            Row {
+                AnimatedContent(
+                    targetState = icon,
+                    transitionSpec = { fadeIn() with fadeOut() }
+                ) {
+                    Icon(imageVector = it, contentDescription = contentDescription ?: label)
+                }
+                Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+                AnimatedContent(
+                    targetState = label,
+                    transitionSpec = { fadeIn() with fadeOut() }
+                ) {
+                    Text(it)
+                }
+            }
+            Box { menu() }
         }
     }
 }

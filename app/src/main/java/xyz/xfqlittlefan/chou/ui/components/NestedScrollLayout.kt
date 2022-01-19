@@ -16,7 +16,6 @@
 
 package xyz.xfqlittlefan.chou.ui.components
 
-import android.util.Log
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.contentColorFor
@@ -51,23 +50,23 @@ fun NestedScrollLayout(
 
             val looseConstraints = constraints.copy(minWidth = 0, minHeight = 0)
 
+            nestedScrollBehavior.maxHeight = layoutHeight.toFloat()
+
+            val topBarPlaceableList = subcompose(NestedScrollLayoutContent.TopBar, topBar).map {
+                it.measure(looseConstraints)
+            }
+
+            val topBarHeight = topBarPlaceableList.maxByOrNull { it.height }?.height ?: 0
+            nestedScrollBehavior.offsetLimit = (-topBarHeight).toFloat()
+
+            val bodyY = (nestedScrollBehavior.blankOffset - nestedScrollBehavior.offsetLimit).roundToInt()
+            val bodyContentHeight = layoutHeight - bodyY
+
+            val bodyContentPlaceableList = subcompose(NestedScrollLayoutContent.MainContent, content).map {
+                it.measure(looseConstraints.copy(maxHeight = bodyContentHeight))
+            }
+
             layout(layoutWidth, layoutHeight) {
-                nestedScrollBehavior.maxHeight = layoutHeight.toFloat()
-
-                val topBarPlaceableList = subcompose(NestedScrollLayoutContent.TopBar, topBar).map {
-                    it.measure(looseConstraints)
-                }
-
-                val topBarHeight = topBarPlaceableList.maxByOrNull { it.height }?.height ?: 0
-                nestedScrollBehavior.offsetLimit = (-topBarHeight).toFloat()
-
-                val bodyY = (nestedScrollBehavior.blankOffset - nestedScrollBehavior.offsetLimit).roundToInt()
-                val bodyContentHeight = layoutHeight - bodyY
-
-                val bodyContentPlaceableList = subcompose(NestedScrollLayoutContent.MainContent, content).map {
-                    it.measure(looseConstraints.copy(maxHeight = bodyContentHeight))
-                }
-
                 bodyContentPlaceableList.forEach {
                     it.place(0, bodyY)
                 }

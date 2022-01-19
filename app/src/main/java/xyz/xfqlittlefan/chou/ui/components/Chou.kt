@@ -32,13 +32,14 @@ import xyz.xfqlittlefan.chou.ui.plus
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun Main(viewModel: ActivityViewModel, route: String, state: ScrollState, navigateTo: (String) -> Unit) {
+fun Main(padding: PaddingValues, viewModel: ActivityViewModel, route: String, state: ScrollState, navigateTo: (String) -> Unit) {
     SideEffect {
         viewModel.globalScreen?.let { if (it != route) navigateTo(it) }
     }
 
     Column(
         modifier = Modifier
+            .padding(padding)
             .fillMaxSize()
             .verticalScroll(state),
         verticalArrangement = Arrangement.Center,
@@ -98,7 +99,7 @@ fun Main(viewModel: ActivityViewModel, route: String, state: ScrollState, naviga
 
 @OptIn(ExperimentalAnimationApi::class, ExperimentalFoundationApi::class)
 @Composable
-fun Edit(viewModel: ActivityViewModel, route: String, state: LazyListState, navigateTo: (String) -> Unit) {
+fun Edit(padding: PaddingValues, viewModel: ActivityViewModel, route: String, state: LazyListState, navigateTo: (String) -> Unit) {
     val coroutineScope = rememberCoroutineScope()
     val behavior = remember { NestedScrollBehavior(coroutineScope) }
 
@@ -112,7 +113,7 @@ fun Edit(viewModel: ActivityViewModel, route: String, state: LazyListState, navi
         )
 
         NestedScrollLayout(
-            modifier = Modifier.nestedScroll(behavior.connection),
+            modifier = Modifier.padding(padding).nestedScroll(behavior.connection),
             topBar = {
                 Column(
                     modifier = Modifier
@@ -199,30 +200,13 @@ fun Edit(viewModel: ActivityViewModel, route: String, state: LazyListState, navi
                         .fillMaxSize()
                         .navigationBarsWithImePadding()
                         .verticalScroll(rememberScrollState())
-                        .padding(10.dp)
+                        .systemBarsPadding(bottom = false)
                         .cutoutPadding(top = false, bottom = false)
+                        .padding(10.dp)
                 ) {
                     val menuText = stringResource(viewModel.itemList[viewModel.editingItem].type)
                     var isShowingMenu by remember { mutableStateOf(false) }
 
-                    ButtonWithLabelAndIcon(label = menuText, icon = Icons.Default.MoreVert, contentDescription = "$menuText/${stringResource(R.string.click_to_select)}") {
-                        isShowingMenu = true
-                    }
-                    Box {
-                        ChouDropdownMenu(expanded = isShowingMenu, onDismissRequest = { isShowingMenu = false }) {
-                            viewModel.itemTypeList.forEach { type ->
-                                DropdownMenuItem(
-                                    onClick = {
-                                        isShowingMenu = false
-                                        viewModel.itemList[viewModel.editingItem].type = type
-                                    }
-                                ) {
-                                    Text(stringResource(type))
-                                }
-                            }
-                        }
-                    }
-                    Spacer(Modifier.height(5.dp))
                     AnimatedContent(
                         targetState = viewModel.itemList[viewModel.editingItem].type,
                         transitionSpec = { fadeIn() with fadeOut() }
@@ -240,9 +224,7 @@ fun Edit(viewModel: ActivityViewModel, route: String, state: LazyListState, navi
                                 ) {
                                     TextField(
                                         value = viewModel.editingValue,
-                                        onValueChange = {
-                                            viewModel.editingValue = it
-                                        },
+                                        onValueChange = viewModel.onTextFieldValueChanged,
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .focusRequester(requester)
@@ -257,6 +239,9 @@ fun Edit(viewModel: ActivityViewModel, route: String, state: LazyListState, navi
                             .fillMaxWidth()
                             .navigationBarsPadding(start = false, end = false)
                     ) {
+                        ButtonWithLabelAndIcon(label = menuText, icon = Icons.Default.MoreVert, contentDescription = "$menuText/${stringResource(R.string.click_to_select)}") {
+                            isShowingMenu = true
+                        }
                         ButtonWithIconAndLabel(
                             label = stringResource(id = android.R.string.cancel),
                             icon = Icons.Default.Close,
@@ -267,6 +252,20 @@ fun Edit(viewModel: ActivityViewModel, route: String, state: LazyListState, navi
                             icon = Icons.Default.Done,
                             onClick = viewModel.confirmEditing
                         )
+                    }
+                    Box {
+                        ChouDropdownMenu(expanded = isShowingMenu, onDismissRequest = { isShowingMenu = false }) {
+                            viewModel.itemTypeList.forEach { type ->
+                                DropdownMenuItem(
+                                    onClick = {
+                                        isShowingMenu = false
+                                        viewModel.itemList[viewModel.editingItem].type = type
+                                    }
+                                ) {
+                                    Text(stringResource(type))
+                                }
+                            }
+                        }
                     }
                 }
             }

@@ -3,6 +3,7 @@ package xyz.xfqlittlefan.chou
 import android.util.Log
 import androidx.annotation.StringRes
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
@@ -58,8 +59,8 @@ class ActivityViewModel : ViewModel() {
     var editingValue by mutableStateOf(TextFieldValue(text = ""))
 
     val screenList = listOf(
-        Screen("home", R.string.home, Icons.Default.Home, homeScrollState) { Main(this, "home", homeScrollState, it) },
-        Screen("edit", R.string.edit, Icons.Default.Edit, editScrollState) { Edit(this, "edit", editScrollState, it) }
+        Screen("home", R.string.home, Icons.Default.Home, homeScrollState) { padding, navigateTo -> Main(padding, this, "home", homeScrollState, navigateTo) },
+        Screen("edit", R.string.edit, Icons.Default.Edit, editScrollState) { padding, navigateTo -> Edit(padding, this, "edit", editScrollState, navigateTo) }
     )
 
     val itemTypeList = listOf(
@@ -145,5 +146,5 @@ class ActivityViewModel : ViewModel() {
         var value by mutableStateOf("")
     }
 
-    class Screen(val route: String, @StringRes val resId: Int, val icon: ImageVector, val state: Any, val component: @Composable ((String) -> Unit) -> Unit)
+    class Screen(val route: String, @StringRes val resId: Int, val icon: ImageVector, val state: Any, val component: @Composable (PaddingValues, (String) -> Unit) -> Unit)
 }

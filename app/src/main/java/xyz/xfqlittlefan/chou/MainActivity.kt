@@ -28,6 +28,7 @@ import com.google.accompanist.insets.cutoutPadding
 import com.google.accompanist.insets.systemBarsPadding
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import xyz.xfqlittlefan.chou.ui.components.ChouAppBar
+import xyz.xfqlittlefan.chou.ui.components.ChouLayout
 import xyz.xfqlittlefan.chou.ui.components.ChouNavigationBar
 import xyz.xfqlittlefan.chou.ui.theme.ChouTheme
 
@@ -50,7 +51,7 @@ class MainActivity : ComponentActivity() {
                 ProvideWindowInsets(windowInsetsAnimationsEnabled = true) {
                     val navController = rememberNavController()
 
-                    Scaffold(
+                    ChouLayout(
                         topBar = {
                             ChouAppBar(
                                 title = { Text(stringResource(id = R.string.app_name)) },
@@ -121,14 +122,14 @@ class MainActivity : ComponentActivity() {
                             }
                         }
 
-                        NavHost(navController = navController, startDestination = viewModel.screenList[0].route, modifier = Modifier.padding(innerPadding)) {
+                        NavHost(navController = navController, startDestination = viewModel.screenList[0].route) {
                             viewModel.screenList.forEach { item ->
                                 composable(item.route) {
                                     SideEffect {
                                         viewModel.currentScrollState = item.state
                                     }
 
-                                    item.component {
+                                    item.component(innerPadding) {
                                         navController.navigate(it) {
                                             popUpTo(navController.graph.findStartDestination().id) {
                                                 saveState = true

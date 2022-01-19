@@ -136,12 +136,10 @@ private fun BaseLayout(
                 0
             }
 
-            val bodyContentHeight = layoutHeight - topBarHeight
-
             val bodyContentPlaceables = subcompose(ScaffoldLayoutContent.MainContent) {
                 val innerPadding = PaddingValues(top = topBarHeight.toDp(), bottom = bottomBarHeight.toDp())
                 content(innerPadding)
-            }.map { it.measure(looseConstraints.copy(maxHeight = bodyContentHeight)) }
+            }.map { it.measure(looseConstraints) }
 
             topBarPlaceables.forEach {
                 it.place(0, 0)

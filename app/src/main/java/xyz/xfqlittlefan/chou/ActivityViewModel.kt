@@ -20,10 +20,7 @@ import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import xyz.xfqlittlefan.chou.ui.components.Edit
 import xyz.xfqlittlefan.chou.ui.components.Main
 import kotlin.math.roundToInt
@@ -68,21 +65,16 @@ class ActivityViewModel : ViewModel() {
         R.string.item_type_1
     )
 
-    @OptIn(DelicateCoroutinesApi::class)
-    fun addItem(position: Int) {
-        GlobalScope.launch {
+    suspend fun addItem(position: Int) {
             if (isEditing && position <= editingItem) editingItem++
             itemList = itemList.toMutableList().apply { add(position, Item()) }
-        }
+        editScrollState.animateScrollToItem(position)
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     fun removeItem(position: Int) {
-        GlobalScope.launch {
             if (editingItem == position) isEditing = false
             if (isEditing && position < editingItem) editingItem--
             itemList = itemList.toMutableList().apply { removeAt(position) }
-        }
     }
 
     fun editItem(position: Int) {

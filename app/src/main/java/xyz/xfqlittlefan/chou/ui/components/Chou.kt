@@ -26,6 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.flowlayout.FlowRow
 import com.google.accompanist.insets.*
+import kotlinx.coroutines.launch
 import xyz.xfqlittlefan.chou.ActivityViewModel
 import xyz.xfqlittlefan.chou.R
 import xyz.xfqlittlefan.chou.ui.plus
@@ -113,7 +114,9 @@ fun Edit(padding: PaddingValues, viewModel: ActivityViewModel, route: String, st
         )
 
         NestedScrollLayout(
-            modifier = Modifier.padding(padding).nestedScroll(behavior.connection),
+            modifier = Modifier
+                .padding(padding)
+                .nestedScroll(behavior.connection),
             topBar = {
                 Column(
                     modifier = Modifier
@@ -124,7 +127,7 @@ fun Edit(padding: PaddingValues, viewModel: ActivityViewModel, route: String, st
                         .cutoutPadding(top = false, bottom = false)
                 ) {
                     TextButton(
-                        onClick = { viewModel.addItem(0) },
+                        onClick = { coroutineScope.launch { viewModel.addItem(0) } },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(size = 10.dp)
                     ) {
@@ -173,7 +176,7 @@ fun Edit(padding: PaddingValues, viewModel: ActivityViewModel, route: String, st
                             Spacer(Modifier.height(10.dp))
                             FlowRow(modifier = Modifier.padding(horizontal = 10.dp)) {
                                 ButtonWithIconAndLabel(label = stringResource(id = R.string.add_item), icon = Icons.Default.Add) {
-                                    viewModel.addItem(index + 1)
+                                    coroutineScope.launch { viewModel.addItem(index + 1) }
                                 }
                                 ButtonWithIconAndLabel(label = stringResource(id = R.string.remove_item), icon = Icons.Default.Delete) {
                                     viewModel.removeItem(index)

@@ -102,7 +102,6 @@ fun Main(padding: PaddingValues, viewModel: ActivityViewModel, route: String, st
 @Composable
 fun Edit(padding: PaddingValues, viewModel: ActivityViewModel, route: String, state: LazyListState, navigateTo: (String) -> Unit) {
     val coroutineScope = rememberCoroutineScope()
-    val behavior = remember { NestedScrollBehavior(coroutineScope) }
 
     SideEffect {
         viewModel.globalScreen?.let { if (it != route) navigateTo(it) }
@@ -113,32 +112,26 @@ fun Edit(padding: PaddingValues, viewModel: ActivityViewModel, route: String, st
             scrollFraction = viewModel.scrollFraction
         )
 
-        NestedScrollLayout(
-            modifier = Modifier
-                .padding(padding)
-                .nestedScroll(behavior.connection),
-            topBar = {
-                Column(
-                    modifier = Modifier
-                        .wrapContentHeight()
-                        .background(color = background)
-                        .padding(10.dp)
-                        .systemBarsPadding(top = false, bottom = false)
-                        .cutoutPadding(top = false, bottom = false)
+        Column(modifier = Modifier.padding(padding)) {
+            Column(
+                modifier = Modifier
+                    .wrapContentHeight()
+                    .background(color = background)
+                    .padding(10.dp)
+                    .systemBarsPadding(top = false, bottom = false)
+                    .cutoutPadding(top = false, bottom = false)
+            ) {
+                TextButton(
+                    onClick = { coroutineScope.launch { viewModel.addItem(0) } },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(size = 10.dp)
                 ) {
-                    TextButton(
-                        onClick = { coroutineScope.launch { viewModel.addItem(0) } },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(size = 10.dp)
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.add_item)
-                        )
-                    }
+                    Text(
+                        text = stringResource(id = R.string.add_item)
+                    )
                 }
-            },
-            nestedScrollBehavior = behavior
-        ) {
+            }
+
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 state = state,

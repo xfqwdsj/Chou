@@ -20,27 +20,3 @@ fun PaddingValues.plus(another: PaddingValues, layoutDirection: LayoutDirection)
         bottom = this.calculateBottomPadding() + another.calculateBottomPadding()
     )
 }
-
-class AnimatedFloatValue(initialValue: Float, private val coroutineScope: CoroutineScope) {
-    private var useAnimatedValue by mutableStateOf(false)
-    private var _value by mutableStateOf(initialValue)
-    private var _animatedValue = Animatable(initialValue)
-    var value
-        get() = if (useAnimatedValue) _animatedValue.value else _value
-        set(value) {
-            useAnimatedValue = false
-            _value = value
-        }
-
-    fun animatedTo(value: Float) {
-        _animatedValue = Animatable(_value)
-        useAnimatedValue = true
-        coroutineScope.launch { _animatedValue.animateTo(value) }
-    }
-
-    operator fun getValue(thisObj: Any?, property: KProperty<*>): Float = value
-
-    operator fun setValue(thisObj: Any?, property: KProperty<*>, value: Float) {
-        this.value = value
-    }
-}

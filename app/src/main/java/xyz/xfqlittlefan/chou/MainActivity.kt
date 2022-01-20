@@ -27,7 +27,7 @@ import com.google.accompanist.insets.cutoutPadding
 import com.google.accompanist.insets.systemBarsPadding
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import xyz.xfqlittlefan.chou.ui.components.ChouAppBar
-import xyz.xfqlittlefan.chou.ui.components.ChouLayout
+import xyz.xfqlittlefan.chou.ui.components.Scaffold
 import xyz.xfqlittlefan.chou.ui.components.ChouNavigationBar
 import xyz.xfqlittlefan.chou.ui.theme.ChouTheme
 
@@ -50,8 +50,8 @@ class MainActivity : ComponentActivity() {
                 ProvideWindowInsets(windowInsetsAnimationsEnabled = true) {
                     val navController = rememberNavController()
 
-                    ChouLayout(
-                        topBar = {
+                    Scaffold {
+                        topBar {
                             ChouAppBar(
                                 title = { Text(stringResource(id = R.string.app_name)) },
                                 modifier = Modifier
@@ -74,8 +74,9 @@ class MainActivity : ComponentActivity() {
                                 scrollBehavior = viewModel.scrollBehavior,
                                 fraction = viewModel.scrollFraction
                             )
-                        },
-                        bottomBar = {
+                        }
+
+                        bottomBar {
                             AnimatedVisibility(
                                 visible = viewModel.globalScreen == null,
                                 enter = expandVertically(expandFrom = Alignment.Top),
@@ -108,33 +109,35 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                         }
-                    ) { innerPadding ->
-                        LaunchedEffect(viewModel.globalScreen) {
-                            viewModel.globalScreen?.let {
-                                navController.navigate(it) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
+
+                        content { innerPadding ->
+                            LaunchedEffect(viewModel.globalScreen) {
+                                viewModel.globalScreen?.let {
+                                    navController.navigate(it) {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
                                     }
-                                    launchSingleTop = true
-                                    restoreState = true
                                 }
                             }
-                        }
 
-                        NavHost(navController = navController, startDestination = viewModel.screenList[0].route) {
-                            viewModel.screenList.forEach { item ->
-                                composable(item.route) {
-                                    SideEffect {
-                                        viewModel.currentScrollState = item.state
-                                    }
+                            NavHost(navController = navController, startDestination = viewModel.screenList[0].route) {
+                                viewModel.screenList.forEach { item ->
+                                    composable(item.route) {
+                                        SideEffect {
+                                            viewModel.currentScrollState = item.state
+                                        }
 
-                                    item.component(innerPadding) {
-                                        navController.navigate(it) {
-                                            popUpTo(navController.graph.findStartDestination().id) {
-                                                saveState = true
+                                        item.component(innerPadding) {
+                                            navController.navigate(it) {
+                                                popUpTo(navController.graph.findStartDestination().id) {
+                                                    saveState = true
+                                                }
+                                                launchSingleTop = true
+                                                restoreState = true
                                             }
-                                            launchSingleTop = true
-                                            restoreState = true
                                         }
                                     }
                                 }

@@ -7,6 +7,7 @@ def pro = new Properties()
 pro.load(new FileInputStream("key.properties"))
 
 android {
+    namespace 'xyz.xfqlittlefan.chou'
     compileSdk 33
 
     signingConfigs {

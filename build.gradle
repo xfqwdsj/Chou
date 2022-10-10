@@ -7,6 +7,6 @@ task clean(type: Delete) {
 buildscript {
     ext {
         compose_version = '1.2.0-alpha01'
-        accompanist_version = '0.26.4-beta'
+        accompanist_version = '0.26.5-rc'
     }
 }
